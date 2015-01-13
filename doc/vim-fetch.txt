@@ -1,7 +1,7 @@
 *vim-fetch.txt*        For Vim version 7.0 or better          version 1.0.0
 
 
-		VIM REFERENCE for the Fetch plugin
+		VIM REFERENCE for the Fetch plug-in
 
 
 Jump to lines and columns specified in buffer names	*vim-fetch*
@@ -14,11 +14,11 @@ Jump to lines and columns specified in buffer names	*vim-fetch*
 {not available when |'compatible'| is set}
 
 ==============================================================================
-1. Introduction					*vim-fetch-intro*
+1. Introduction					*vim-fetch-introduction*
 
-*vim-fetch* enables Vim to process line and column jump specifications in file
+vim-fetch enables Vim to process line and column jump specifications in file
 paths as found in stack traces and similar output. When asked to open such
-a file, Vim with *vim-fetch* will jump to the specified line (and column, if
+a file, Vim with vim-fetch will jump to the specified line (and column, if
 given) instead of displaying an empty, new file.
 
 ==============================================================================
@@ -48,7 +48,7 @@ This works for any command that opens files with |edit| semantics, notably
 ==============================================================================
 3. Position specifications			*vim-fetch-specs*
 
-*vim-fetch* understands the following position specifications:
+vim-fetch understands the following position specifications:
 
 
 COLON SEPARATED
@@ -67,7 +67,7 @@ PARENTHESES ENCLOSED
 ==============================================================================
 4. Credits and License			*vim-fetch-credits-license*
 
-*vim-fetch* is maintained by Martin Kopischke
+vim-fetch is maintained by Martin Kopischke
 
     http://martin.kopischke.net
 
