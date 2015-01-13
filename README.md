@@ -12,10 +12,6 @@ given) instead of displaying an empty, new file.
 
 If you have wished Vim would understand stack trace formats, *vim-fetch* is for you.
 
-### Rationale
-
-Jumping to the point indicated by common stack trace output should be a given in an editor; unluckily, Vim has no concept of this out of the box. As the one plugin I found that aims to fix this, Victor Bogado’s [*file_line*][bogado-plugin], had a number of issues (at the time of this writing, it didn’t correctly process multiple files given with a window switch, i.e. [`-o`, `-O`][bogado-issue-winswitch] and [`-p`][bogado-issue-tabswitch], and I found it choked autocommand processing for the first loaded file on the Argument list), I wrote my own.
-
 ### Installation
 
 1. The old way: download and source the vimball from the [releases page][releases], then run `:helptags {dir}` on your runtimepath/doc directory. Or,
@@ -24,6 +20,10 @@ Jumping to the point indicated by common stack trace output should be a given in
 ### Usage
 
 TL;DR: `vim path/to/file.c:12:3` or `:e[dit] path/to/file.rb:100:12`. For more, see the [documentation][doc].
+
+### Rationale
+
+Jumping to the point indicated by common stack trace output should be a given in an editor; unluckily, Vim has no concept of this out of the box. As the one plugin I found that aims to fix this, Victor Bogado’s [*file_line*][bogado-plugin], had a number of issues (at the time of this writing, it didn’t correctly process multiple files given with a window switch, i.e. [`-o`, `-O`][bogado-issue-winswitch] and [`-p`][bogado-issue-tabswitch], and I found it choked autocommand processing for the first loaded file on the Argument list), I wrote my own.
 
 ### License
 
