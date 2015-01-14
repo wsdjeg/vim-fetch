@@ -13,7 +13,7 @@ endfunction
 
 " - trailing parentheses, i.e. '(lnum[:colnum])'
 "   trigger with '*([0123456789]*)' pattern
-let s:specs.paren = {'pattern': '\m\(\(\d\+\%(:\d\+\)\?\))$'}
+let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))$'}
 function! s:specs.paren.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ split(matchlist(a:file, self.pattern)[1], ':')]
