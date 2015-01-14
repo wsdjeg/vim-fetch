@@ -5,7 +5,7 @@ let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
 "   trigger with '*:*' pattern
-let s:specs.colon = {'pattern': '\m\%(:\d\+\)\+:\?$'}
+let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?$'}
 function! s:specs.colon.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ split(matchstr(a:file, self.pattern), ':')]
