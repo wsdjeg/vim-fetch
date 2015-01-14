@@ -21,7 +21,7 @@ endif
 "
 " Note the use of spec specific file name patterns to avoid autocommand
 " flooding when nesting.
-let s:matchers = {'colon': '*:*', 'paren': '*(*)'}
+let s:matchers = {'colon': '*:*', 'paren': '*(*)', 'plan9': '*#*'}
 let s:events   = has('windows') ? 'BufWinEnter,WinEnter,TabEnter' : 'BufWinEnter,WinEnter'
 augroup fetch
   autocmd!

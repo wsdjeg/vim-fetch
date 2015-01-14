@@ -64,6 +64,14 @@ PARENTHESES ENCLOSED
 5. path/to/file.ext(lnum)
 6. path/to/file.ext(lnum:colnum)
 
+
+PLAN 9 STYLE
+
+7. path/to/file.ext:#lnum
+
+Note: `#` is the alternate file token and needs to be escaped to be used on
+the command line (see |cmdline-special|).
+
 ==============================================================================
 4. Credits and License			*vim-fetch-credits-license*
 
