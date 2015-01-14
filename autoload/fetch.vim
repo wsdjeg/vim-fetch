@@ -20,7 +20,7 @@ function! s:specs.paren.parse(file) abort
 endfunction
 
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
-" @signature:  fetch#edit({file:String})
+" @signature:  fetch#edit({file:String}, {spec:String})
 " @notes:      won't work from a |BufReadCmd| event as it does not load non-spec files
 function! fetch#edit(file, spec) abort
   let l:spec = get(s:specs, a:spec, {})
@@ -32,7 +32,7 @@ function! fetch#edit(file, spec) abort
   let [l:file, l:pos] = l:spec.parse(a:file)
   let l:cmd = ''
 
-  " get rid of the '..:num' buffer
+  " get rid of the spec'ed buffer
   if expand('%:p') is fnamemodify(a:file, ':p')
     set bufhidden=wipe      " avoid issues with |bwipeout|
     let l:cmd .= 'keepalt ' " don't mess up alternate file on switch
