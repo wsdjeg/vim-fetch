@@ -4,7 +4,7 @@
 let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
-"   trigger with '*:*' pattern
+"   trigger with '*:[0123456789]*' pattern
 let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?$'}
 function! s:specs.colon.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
@@ -12,7 +12,7 @@ function! s:specs.colon.parse(file) abort
 endfunction
 
 " - trailing parentheses, i.e. '(lnum[:colnum])'
-"   trigger with '*(*)' pattern
+"   trigger with '*([0123456789]*)' pattern
 let s:specs.paren = {'pattern': '\m\(\(\d\+\%(:\d\+\)\?\))$'}
 function! s:specs.paren.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
@@ -20,7 +20,7 @@ function! s:specs.paren.parse(file) abort
 endfunction
 
 " - Plan 9 type line spec, i.e. '[:]#lnum'
-"   trigger with '*#*' pattern
+"   trigger with '*#[0123456789]*' pattern
 let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)$'}
 function! s:specs.plan9.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
