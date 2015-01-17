@@ -28,9 +28,9 @@ given) instead of displaying an empty, new file.
 
 FROM OUTSIDE VIM:
 >
-	vim path/to/file.c:12:3
+	vim path/to/file.ext:12:3
 <
-will open `file.c` and jump to line 12, column 3.
+will open `file.ext` and jump to line 12, column 3.
 
 This works for multiple files (|arglist| passing) in any mix of spec'ed and
 unspec'ed paths, and with all Vim |windows-opening| switches ('-o', '-O', and
@@ -39,12 +39,12 @@ unspec'ed paths, and with all Vim |windows-opening| switches ('-o', '-O', and
 
 FROM INSIDE VIM:
 >
-	:e[dit] path/to/file.rb:100:12
+	:e[dit] path/to/file.ext:100:12
 <
-will open `file.rb` and jump to line 100, column 12.
+will open `file.ext` and jump to line 100, column 12.
 
-This works for any command that opens files with |edit| semantics, notably
-|argedit| and |diffsplit|.
+This works for any command that opens files with |edit| semantics, including
+|argedit|, |pedit| and |diffsplit|.
 
 ==============================================================================
 3. Position specifications			*vim-fetch-specs*
