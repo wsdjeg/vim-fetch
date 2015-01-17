@@ -29,7 +29,11 @@ endfunction
 
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
 " @signature:  fetch#edit({file:String}, {spec:String})
-" @notes:      won't work from a |BufReadCmd| event as it does not load non-spec files
+" @returns:    Boolean indicating if a spec path has been detected and processed
+" @notes:      - won't work from a |BufReadCmd| event as it doesn't load non-spec'ed files
+"              - won't work from events fired before the spec'ed file is loaded into
+"                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
+"                as it won't be able to wipe the spurious new spec'ed buffer
 function! fetch#edit(file, spec) abort
   let l:spec = get(s:specs, a:spec, {})
 
