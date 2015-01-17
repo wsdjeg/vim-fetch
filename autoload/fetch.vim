@@ -35,7 +35,7 @@ function! fetch#edit(file, spec) abort
 
   " get spec data if needed, else bail
   if empty(l:spec) || filereadable(a:file) || match(a:file, l:spec.pattern) is -1
-    return
+    return 0
   endif
   let [l:file, l:pos] = l:spec.parse(a:file)
   let l:cmd = ''
@@ -62,6 +62,7 @@ function! fetch#edit(file, spec) abort
   execute l:cmd.'edit!' fnameescape(l:file)
   call cursor(max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1]))
   silent! normal! zO
+  return 1
 endfunction
 
 " vim:set sw=2 sts=2 ts=2 et fdm=marker fmr={{{,}}}:
