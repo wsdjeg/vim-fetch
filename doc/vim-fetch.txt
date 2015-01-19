@@ -44,7 +44,17 @@ FROM INSIDE VIM:
 will open `file.ext` and jump to line 100, column 12.
 
 This works for any command that opens files with |edit| semantics, including
-|argedit|, |pedit| and |diffsplit|.
+|argedit|, |pedit| and |diffsplit| on local file systems (e.g. not for |netrw|
+remote editing).
+
+
+INTEGRATION:
+
+After processing a spec for a buffer, vim-spec sets a buffer-local variable,
+>
+	let b:fetch_lastpos = [lnum, colnum]
+<
+You can use the presence (or values) of that variable to integrate with vim-fetch.
 
 ==============================================================================
 3. Position specifications			*vim-fetch-specs*
@@ -73,6 +83,13 @@ PLAN 9 STYLE
 Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
 
+OTHER SPEC TYPES
+
+If you would you like to see other specs in vim-fetch, open an issue (or even
+better: send a PR) for them at
+
+	https://github.com/kopischke/vim-fetch
+
 ==============================================================================
 4. Troubleshooting			*vim-fetch-troubleshooting*
 
@@ -98,6 +115,13 @@ I TRIED TO EDIT A FILE WITH A PLAN 9 STYLE SPEC AND GOT ANOTHER FILE (OR E194)
 >
 	:e path/to/file.ext:\#lnum
 <
+
+I CAN'T JUMP TO LINES IN REMOTE FILES VIA NETRW
+
+This is by design: vim-fetch needs to check for readable files in both spec'ed
+and unspec'ed form. Doing that remotely, even when possible, would add too
+much latency to file opening.
+
 
 MY PROBLEM ISN'T LISTED HERE
 
