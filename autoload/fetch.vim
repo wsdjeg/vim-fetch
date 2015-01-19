@@ -37,13 +37,11 @@ endfunction
 "                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
 "                as it won't be able to wipe the spurious new spec'ed buffer
 function! fetch#edit(file, spec) abort
-  let l:spec = get(s:specs, a:spec, {})
-
-  " get spec data if needed, else bail
-  if empty(l:spec) || filereadable(a:file) || match(a:file, l:spec.pattern) is -1
+  " naive early exit on obvious non-matches
+  if filereadable(a:file) || match(a:file, s:specs[a:spec].pattern) is -1
     return 0
   endif
-  let [l:file, l:pos] = l:spec.parse(a:file)
+  let [l:file, l:pos] = s:specs[a:spec].parse(a:file)
   let l:cmd = ''
 
   " get rid of the spec'ed buffer
