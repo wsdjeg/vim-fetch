@@ -1,4 +1,6 @@
 " AUTOLOAD FUNCTION LIBRARY FOR VIM-FETCH
+let s:cpo = &cpo
+set cpo&vim
 
 " Position specs Dictionary:
 let s:specs = {}
@@ -68,5 +70,8 @@ function! fetch#edit(file, spec) abort
   silent! normal! zO
   return 1
 endfunction
+
+let &cpo = s:cpo
+unlet! s:cpo
 
 " vim:set sw=2 sts=2 ts=2 et fdm=marker fmr={{{,}}}:
