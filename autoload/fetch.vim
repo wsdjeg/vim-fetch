@@ -103,7 +103,8 @@ function! fetch#edit(file, spec) abort
 
   " open correct file and place cursor at position spec
   execute l:pre.'edit!' fnameescape(l:file)
-  call cursor(max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1]))
+  let b:fetch_lastpos = [max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1])]
+  call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zO
   return 1
 endfunction
