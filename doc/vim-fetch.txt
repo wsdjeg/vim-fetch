@@ -1,4 +1,4 @@
-*vim-fetch.txt*        For Vim version 7.0 or better          version 1.1.0
+*vim-fetch.txt*        For Vim version 7.0 or better          version 1.2.0
 
 
 		VIM REFERENCE for the Fetch plug-in
