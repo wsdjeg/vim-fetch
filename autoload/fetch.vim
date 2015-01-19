@@ -76,7 +76,7 @@ function! fetch#edit(file, spec) abort
   endif
 
   " processing setup
-  let l:cmd = ''
+  let l:pre = ''            " will be prefixed to edit command
 
   " if current buffer is spec'ed and invalid set it up for wiping
   if expand('%:p') is fnamemodify(a:file, ':p')
@@ -86,7 +86,7 @@ function! fetch#edit(file, spec) abort
       endif
     endfor
     set bufhidden=wipe      " avoid issues with |bwipeout|
-    let l:cmd .= 'keepalt ' " don't mess up alternate file on switch
+    let l:pre .= 'keepalt ' " don't mess up alternate file on switch
   endif
 
   " clean up argument list
@@ -97,12 +97,12 @@ function! fetch#edit(file, spec) abort
       execute l:argidx.'argadd' fnameescape(l:file)
     endif
     if index(argv(), l:file) isnot -1
-      let l:cmd .= 'arg'    " set arglist index to edited file
+      let l:pre .= 'arg'    " set arglist index to edited file
     endif
   endif
 
   " open correct file and place cursor at position spec
-  execute l:cmd.'edit!' fnameescape(l:file)
+  execute l:pre.'edit!' fnameescape(l:file)
   call cursor(max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1]))
   silent! normal! zO
   return 1
