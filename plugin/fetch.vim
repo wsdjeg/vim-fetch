@@ -2,7 +2,7 @@
 " Maintainer: Martin Kopischke <martin@kopischke.net>
 " License:    MIT (see LICENSE.md)
 " Version:    1.1.0
-if &compatible || !has('autocmd')
+if &compatible || !has('autocmd') || v:version < 700
   finish
 endif
 
