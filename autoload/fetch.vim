@@ -29,6 +29,33 @@ function! s:specs.plan9.parse(file) abort
         \ [matchlist(a:file, self.pattern)[1]]]
 endfunction
 
+" Detection methods for buffers that bypass `filereadable()`:
+let s:ignore = []
+
+" - non-file buffer types
+call add(s:ignore, {})
+function! s:ignore[-1].detect(buffer) abort
+  return !empty(getbufvar(a:buffer, '&buftype'))
+endfunction
+
+" - non-document file types that do not trigger the above
+"   not needed for: Unite / VimFiler / VimShell / CtrlP / Conque-Shell
+call add(s:ignore, {'types': ['netrw']})
+function! s:ignore[-1].detect(buffer) abort
+  return index(self.types, getbufvar(a:buffer, '&filetype')) isnot -1
+endfunction
+
+" - redirected buffers
+call add(s:ignore, {'bufvars': ['netrw_lastfile']})
+function! s:ignore[-1].detect(buffer) abort
+  for l:var in self.bufvars
+    if !empty(getbufvar(a:buffer, l:var))
+      return 1
+    endif
+  endfor
+  return 0
+endfunction
+
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
 " @signature:  fetch#edit({file:String}, {spec:String})
 " @returns:    Boolean indicating if a spec path has been detected and processed
@@ -41,11 +68,23 @@ function! fetch#edit(file, spec) abort
   if filereadable(a:file) || match(a:file, s:specs[a:spec].pattern) is -1
     return 0
   endif
+
+  " check for unspec'ed editable file
   let [l:file, l:pos] = s:specs[a:spec].parse(a:file)
+  if !filereadable(l:file)
+    return 0                " in doubt, end with invalid user input
+  endif
+
+  " processing setup
   let l:cmd = ''
 
-  " get rid of the spec'ed buffer
+  " if current buffer is spec'ed and invalid set it up for wiping
   if expand('%:p') is fnamemodify(a:file, ':p')
+    for l:ignore in s:ignore
+      if l:ignore.detect(bufnr('%')) is 1
+        return 0
+      endif
+    endfor
     set bufhidden=wipe      " avoid issues with |bwipeout|
     let l:cmd .= 'keepalt ' " don't mess up alternate file on switch
   endif
