@@ -1,10 +1,13 @@
 " SIMPLIFIED TAKE ON BOGADO/FILE-LINE (HOPEFULLY) WITHOUT THE WARTS
 " Maintainer: Martin Kopischke <martin@kopischke.net>
 " License:    MIT (see LICENSE.md)
-" Version:    1.0.0
-if &compatible
+" Version:    1.2.0
+if &compatible || !has('autocmd') || v:version < 700
   finish
 endif
+
+let s:cpo = &cpo
+set cpo&vim
 
 " Based on |BufWinEnter| to correctly process all buffers in the initial
 " |arglist| (see |windows-starting| for some background, though that omits to
@@ -34,5 +37,8 @@ augroup fetch
     unlet! s:spec s:pat
   endfor
 augroup END
+
+let &cpo = s:cpo
+unlet! s:cpo
 
 " vim:set sw=2 sts=2 ts=2 et fdm=marker fmr={{{,}}}:

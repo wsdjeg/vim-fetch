@@ -1,4 +1,6 @@
 " AUTOLOAD FUNCTION LIBRARY FOR VIM-FETCH
+let s:cpo = &cpo
+set cpo&vim
 
 " Position specs Dictionary:
 let s:specs = {}
@@ -27,23 +29,64 @@ function! s:specs.plan9.parse(file) abort
         \ [matchlist(a:file, self.pattern)[1]]]
 endfunction
 
+" Detection methods for buffers that bypass `filereadable()`:
+let s:ignore = []
+
+" - non-file buffer types
+call add(s:ignore, {})
+function! s:ignore[-1].detect(buffer) abort
+  return !empty(getbufvar(a:buffer, '&buftype'))
+endfunction
+
+" - non-document file types that do not trigger the above
+"   not needed for: Unite / VimFiler / VimShell / CtrlP / Conque-Shell
+call add(s:ignore, {'types': ['netrw']})
+function! s:ignore[-1].detect(buffer) abort
+  return index(self.types, getbufvar(a:buffer, '&filetype')) isnot -1
+endfunction
+
+" - redirected buffers
+call add(s:ignore, {'bufvars': ['netrw_lastfile']})
+function! s:ignore[-1].detect(buffer) abort
+  for l:var in self.bufvars
+    if !empty(getbufvar(a:buffer, l:var))
+      return 1
+    endif
+  endfor
+  return 0
+endfunction
+
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
 " @signature:  fetch#edit({file:String}, {spec:String})
-" @notes:      won't work from a |BufReadCmd| event as it does not load non-spec files
+" @returns:    Boolean indicating if a spec path has been detected and processed
+" @notes:      - won't work from a |BufReadCmd| event as it doesn't load non-spec'ed files
+"              - won't work from events fired before the spec'ed file is loaded into
+"                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
+"                as it won't be able to wipe the spurious new spec'ed buffer
 function! fetch#edit(file, spec) abort
-  let l:spec = get(s:specs, a:spec, {})
-
-  " get spec data if needed, else bail
-  if empty(l:spec) || filereadable(a:file) || match(a:file, l:spec.pattern) is -1
-    return
+  " naive early exit on obvious non-matches
+  if filereadable(a:file) || match(a:file, s:specs[a:spec].pattern) is -1
+    return 0
   endif
-  let [l:file, l:pos] = l:spec.parse(a:file)
-  let l:cmd = ''
 
-  " get rid of the spec'ed buffer
+  " check for unspec'ed editable file
+  let [l:file, l:pos] = s:specs[a:spec].parse(a:file)
+  if !filereadable(l:file)
+    return 0                " in doubt, end with invalid user input
+  endif
+
+  " processing setup
+  let l:pre = ''            " will be prefixed to edit command
+
+  " if current buffer is spec'ed and invalid set it up for wiping
   if expand('%:p') is fnamemodify(a:file, ':p')
+    for l:ignore in s:ignore
+      if l:ignore.detect(bufnr('%')) is 1
+        return 0
+      endif
+    endfor
     set bufhidden=wipe      " avoid issues with |bwipeout|
-    let l:cmd .= 'keepalt ' " don't mess up alternate file on switch
+    let l:pre .= 'keepalt ' " don't mess up alternate file on switch
   endif
 
   " clean up argument list
@@ -54,14 +97,19 @@ function! fetch#edit(file, spec) abort
       execute l:argidx.'argadd' fnameescape(l:file)
     endif
     if index(argv(), l:file) isnot -1
-      let l:cmd .= 'arg'    " set arglist index to edited file
+      let l:pre .= 'arg'    " set arglist index to edited file
     endif
   endif
 
   " open correct file and place cursor at position spec
-  execute l:cmd.'edit!' fnameescape(l:file)
-  call cursor(max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1]))
+  execute l:pre.'edit!' fnameescape(l:file)
+  let b:fetch_lastpos = [max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1])]
+  call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zO
+  return 1
 endfunction
+
+let &cpo = s:cpo
+unlet! s:cpo
 
 " vim:set sw=2 sts=2 ts=2 et fdm=marker fmr={{{,}}}:
