@@ -56,6 +56,19 @@ function! s:ignore[-1].detect(buffer) abort
   return 0
 endfunction
 
+" Get a copy of vim-fetch's spec matchers:
+" @signature:  fetch#specs()
+" @returns:    Dictionary<Dictionary> of specs, keyed by name,
+"              each spec Dictionary with the following keys:
+"              - 'pattern' String to match the spec in a file name
+"              - 'parse' Funcref taking a spec'ed file name and
+"                 returning a two item List of
+"                 {unspec'ed path:String}, {pos:List<Number[,Number]>}
+" @notes:     the autocommand match patterns are not included
+function! fetch#specs() abort
+  return deepcopy(s:specs)
+endfunction
+
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
 " @signature:  fetch#edit({file:String}, {spec:String})
 " @returns:    Boolean indicating if a spec path has been detected and processed
