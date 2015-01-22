@@ -71,7 +71,7 @@ endfunction
 
 " Edit {file}, placing the cursor at the line and column indicated by {spec}:
 " @signature:  fetch#edit({file:String}, {spec:String})
-" @returns:    Boolean indicating if a spec path has been detected and processed
+" @returns:    Boolean indicating if a spec has been succesfully resolved
 " @notes:      - won't work from a |BufReadCmd| event as it doesn't load non-spec'ed files
 "              - won't work from events fired before the spec'ed file is loaded into
 "                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
