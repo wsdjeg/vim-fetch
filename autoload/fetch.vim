@@ -33,9 +33,9 @@ endfunction
 let s:ignore = []
 
 " - non-file buffer types
-call add(s:ignore, {})
+call add(s:ignore, {'types': ['quickfix', 'acwrite', 'nofile']})
 function! s:ignore[-1].detect(buffer) abort
-  return !empty(getbufvar(a:buffer, '&buftype'))
+  return index(self.types, getbufvar(a:buffer, '&buftype')) isnot -1
 endfunction
 
 " - non-document file types that do not trigger the above
@@ -98,6 +98,7 @@ function! fetch#edit(file, spec) abort
         return 0
       endif
     endfor
+    set buftype=nowrite     " avoid issues voiding the buffer
     set bufhidden=wipe      " avoid issues with |bwipeout|
     let l:pre .= 'keepalt ' " don't mess up alternate file on switch
   endif
@@ -117,7 +118,7 @@ function! fetch#edit(file, spec) abort
   endif
 
   " open correct file and place cursor at position spec
-  execute l:pre.'edit!' fnameescape(l:file)
+  execute l:pre.'edit' fnameescape(l:file)
   return fetch#setpos(l:pos)
 endfunction
 
