@@ -109,9 +109,11 @@ function! fetch#edit(file, spec) abort
       execute 'argdelete' fnameescape(a:file)
       execute l:argidx.'argadd' fnameescape(l:file)
     endif
-    if index(argv(), l:file) isnot -1
-      let l:pre .= 'arg'    " set arglist index to edited file
-    endif
+  endif
+
+  " edit on argument list if required
+  if index(argv(), l:file) isnot -1
+    let l:pre .= 'arg'    " set arglist index to edited file
   endif
 
   " open correct file and place cursor at position spec
