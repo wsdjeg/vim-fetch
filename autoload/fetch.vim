@@ -103,10 +103,22 @@ function! fetch#edit(file, spec) abort
 
   " open correct file and place cursor at position spec
   execute l:pre.'edit!' fnameescape(l:file)
-  let b:fetch_lastpos = [max([l:pos[0], 1]), max([get(l:pos, 1, 0), 1])]
+  return fetch#setpos(l:pos)
+endfunction
+
+" Place the current buffer's cursor at {pos}:
+" @signature:  fetch#setpos({pos:List<Number[,Number]>})
+" @returns:    Boolean
+" @notes:      triggers the |User| events
+"              - BufFetchPosPre before setting the position
+"              - BufFetchPosPost after setting the position
+function! fetch#setpos(pos) abort
+  silent doautocmd <nomodeline> User BufFetchPosPre
+  let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
   call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zO
-  return 1
+  silent doautocmd <nomodeline> User BufFetchPosPost
+  return getpos('.')[1:2] == b:fetch_lastpos
 endfunction
 
 let &cpo = s:cpo
