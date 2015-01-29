@@ -1,4 +1,4 @@
-*vim-fetch.txt*        For Vim version 7.0 or better          version 1.2.0
+*vim-fetch.txt*        For Vim version 7.0 or better          version 1.3.0
 
 
 		VIM REFERENCE for the Fetch plug-in
@@ -50,12 +50,28 @@ remote editing).
 
 INTEGRATION:
 
+1. position buffer local variable		*b:fetch_lastpos*
+
 After processing a spec for a buffer, vim-spec sets a buffer-local variable,
 >
 	let b:fetch_lastpos = [lnum, colnum]
 <
-You can use the presence (or values) of that variable to integrate with vim-fetch.
+You can use the presence and / or values of that variable to integrate
+with vim-fetch.
 
+2. autocommand API				*BufFetchPosPre* *BufFetchPosPost*
+
+vim-fetch triggers two |User| autocommand events when setting the position in
+a buffer: `BufFetchPosPre` before and `BufFetchPosPost` after.
+
+Notes:	- BufFetchPosPost is fired if the position fetch function completes, it
+	  does not guarantee the final position of the cursor.
+	- The events are triggered with |:silent| to avoid flooding message
+	  history with "No matching autocommands" messages. Use |:unsilent| to
+	  restore normal message processing, i.e.
+>
+		autocmd User BufFetchPosPre unsilent echomsg 'Gotcha!'
+<
 ==============================================================================
 3. Position specifications			*vim-fetch-specs*
 
@@ -82,6 +98,7 @@ PLAN 9 STYLE
 
 Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
+
 
 OTHER SPEC TYPES
 
