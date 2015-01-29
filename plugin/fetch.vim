@@ -25,9 +25,9 @@ set cpo&vim
 " Note the use of spec specific file name patterns to avoid autocommand
 " flooding when nesting.
 let s:matchers = {
-  \   'colon': '*:[0123456789]*',
-  \   'paren': '*([0123456789]*)',
-  \   'plan9': '*#[0123456789]*',
+  \   'colon': '?*:[0123456789]*',
+  \   'paren': '?*([0123456789]*)',
+  \   'plan9': '?*#[0123456789]*',
   \ }
 let s:events   = has('windows') ? 'BufWinEnter,WinEnter,TabEnter' : 'BufWinEnter,WinEnter'
 augroup fetch
