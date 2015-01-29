@@ -26,15 +26,15 @@ Quickly jumping to the point indicated by common stack trace output should be a 
 
 *vim-fetch* is licensed under [the terms of the MIT license according to the accompanying license file][license].
 
-[badge-status]: http://img.shields.io/badge/status-active-brightgreen.svg?style=flat-square
-[badge-release]: http://img.shields.io/github/release/kopischke/vim-fetch.svg?style=flat-square
-[badge-issues]: http://img.shields.io/github/issues/kopischke/vim-fetch.svg?style=flat-square
-[badge-license]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
-[bogado-plugin]: https://github.com/bogado/file-line
+[badge-status]:           http://img.shields.io/badge/status-active-brightgreen.svg?style=flat-square
+[badge-release]:          http://img.shields.io/github/release/kopischke/vim-fetch.svg?style=flat-square
+[badge-issues]:           http://img.shields.io/github/issues/kopischke/vim-fetch.svg?style=flat-square
+[badge-license]:          http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
+[bogado-plugin]:          https://github.com/bogado/file-line
 [bogado-issue-tabswitch]: https://github.com/bogado/file-line/issues/11
 [bogado-issue-winswitch]: https://github.com/bogado/file-line/issues/36
-[doc]:      doc/vim-fetch.txt
-[issues]: https://github.com/kopischke/vim-fetch/issues
-[license]:  LICENSE.md
-[releases]: https://github.com/kopischke/vim-fetch/releases
-[vimscripts]: http://www.vim.org/scripts/script.php?script_id=4929
+[doc]:                    doc/vim-fetch.txt
+[issues]:                 https://github.com/kopischke/vim-fetch/issues
+[license]:                LICENSE.md
+[releases]:               https://github.com/kopischke/vim-fetch/releases
+[vimscripts]:             http://www.vim.org/scripts/script.php?script_id=5089
