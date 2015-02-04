@@ -52,7 +52,7 @@ INTEGRATION:
 
 1. position buffer local variable		*b:fetch_lastpos*
 
-After processing a spec for a buffer, vim-spec sets a buffer-local variable,
+After processing a spec for a buffer, vim-fetch sets a buffer-local variable:
 >
 	let b:fetch_lastpos = [lnum, colnum]
 <
