@@ -21,10 +21,10 @@ set cpo&vim
 " Note the use of highly spec specific file name patterns to avoid autocommand
 " flooding when nesting (which is needed as we switch buffers out).
 let s:matchers = {
-  \   'colon': '?*:[0123456789]*',
-  \   'paren': '?*([0123456789]*)',
-  \   'plan9': '?*#[0123456789]*',
-  \   'method': '?*::*',
+  \  'colon': '?*:[0123456789]*',
+  \  'paren': '?*([0123456789]*)',
+  \  'plan9': '?*#[0123456789]*',
+  \ 'pytest': '?*::?*',
   \ }
 
 augroup fetch
