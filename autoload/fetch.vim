@@ -2,7 +2,7 @@
 let s:cpo = &cpo
 set cpo&vim
 
-" Position specs Dictionary:
+" Position specs Dictionary: {{{
 let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
@@ -29,15 +29,19 @@ function! s:specs.plan9.parse(file) abort
         \ [matchlist(a:file, self.pattern)[1]]]
 endfunction
 
-" - trailing function name, i.e. '::test_method'
-"   trigger with '?*::\w+' pattern
-let s:specs.method = {'pattern': '\m\%(::\)\(\w\+\)$'}
-function! s:specs.method.parse(file) abort
+" - py.test type trailing function name, i.e. '::test_method'
+"   trigger with '?*::?*' pattern
+let s:specs.pytest = {'pattern': '\m::\(\w\+\)$'}
+function! s:specs.pytest.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
-        \ '/'.matchlist(a:file, self.pattern)[1]]
+        \ [self.seek, [matchlist(a:file, self.pattern)[1]]]]
 endfunction
+function! s:specs.pytest.seek(method) abort
+  " implement position seeking
+  echomsg "Seek" a:method "in" bufname('%')
+endfunction " }}}
 
-" Detection methods for buffers that bypass `filereadable()`:
+" Detection methods for buffers that bypass `filereadable()`: {{{
 let s:ignore = []
 
 " - non-file buffer types
@@ -62,7 +66,7 @@ function! s:ignore[-1].detect(buffer) abort
     endif
   endfor
   return 0
-endfunction
+endfunction " }}}
 
 " Get a copy of vim-fetch's spec matchers:
 " @signature:  fetch#specs()
@@ -91,7 +95,8 @@ function! fetch#edit(file, spec) abort
   endif
 
   " check for unspec'ed editable file
-  let [l:file, l:pos] = s:specs[a:spec].parse(a:file)
+  let l:spec = s:specs[a:spec]
+  let [l:file, l:pos] = l:spec.parse(a:file)
   if !filereadable(l:file)
     return 0                " in doubt, end with invalid user input
   endif
@@ -137,14 +142,11 @@ endfunction
 "              - BufFetchPosPre before setting the position
 "              - BufFetchPosPost after setting the position
 function! fetch#setpos(pos) abort
+  let b:fetch_lastpos = type(a:pos[0]) is type(function('tr'))
+                    \ ? call(a:pos[0], a:pos[1])
+                    \ : [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
   silent doautocmd <nomodeline> User BufFetchPosPre
-  if a:pos[0] == '/'
-    let b:fetch_lastpos = getpos('.')[1:2]
-    execute a:pos
-  else
-    let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
-    call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
-  endif
+  call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zOzz
   silent doautocmd <nomodeline> User BufFetchPosPost
   return getpos('.')[1:2] == b:fetch_lastpos
