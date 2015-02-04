@@ -29,6 +29,14 @@ function! s:specs.plan9.parse(file) abort
         \ [matchlist(a:file, self.pattern)[1]]]
 endfunction
 
+" - trailing function name, i.e. '::test_method'
+"   trigger with '?*::\w+' pattern
+let s:specs.method = {'pattern': '\m\%(::\)\(\w\+\)$'}
+function! s:specs.method.parse(file) abort
+  return [substitute(a:file, self.pattern, '', ''),
+        \ '/'.matchlist(a:file, self.pattern)[1]]
+endfunction
+
 " Detection methods for buffers that bypass `filereadable()`:
 let s:ignore = []
 
@@ -130,8 +138,13 @@ endfunction
 "              - BufFetchPosPost after setting the position
 function! fetch#setpos(pos) abort
   silent doautocmd <nomodeline> User BufFetchPosPre
-  let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
-  call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
+  if a:pos[0] == '/'
+    let b:fetch_lastpos = getpos('.')[1:2]
+    execute a:pos
+  else
+    let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
+    call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
+  endif
   silent! normal! zOzz
   silent doautocmd <nomodeline> User BufFetchPosPost
   return getpos('.')[1:2] == b:fetch_lastpos
