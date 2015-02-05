@@ -50,7 +50,7 @@ remote editing).
 
 INTEGRATION:
 
-1. position buffer local variable		*b:fetch_lastpos*
+1. Position buffer-local variable		*b:fetch_lastpos*
 
 After processing a spec for a buffer, vim-spec sets a buffer-local variable,
 >
@@ -59,10 +59,10 @@ After processing a spec for a buffer, vim-spec sets a buffer-local variable,
 You can use the presence and / or values of that variable to integrate
 with vim-fetch.
 
-2. autocommand API				*BufFetchPosPre* *BufFetchPosPost*
+2. Autocommand API				*vim-fetch-autocommands*
 
 vim-fetch triggers two |User| autocommand events when setting the position in
-a buffer: `BufFetchPosPre` before and `BufFetchPosPost` after.
+a buffer: *BufFetchPosPre* before and *BufFetchPosPost* after.
 
 Notes:	- BufFetchPosPost is fired if the position fetch function completes, it
 	  does not guarantee the final position of the cursor.
@@ -98,6 +98,14 @@ PLAN 9 STYLE
 
 Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
+
+
+PY.TEST METHOD JUMP
+
+8. path/to/file.py::method
+
+This will move the cursor to the declaration of `method` in `file`, if found.
+Only works in Python files.
 
 
 OTHER SPEC TYPES
