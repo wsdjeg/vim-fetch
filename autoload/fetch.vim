@@ -31,14 +31,18 @@ endfunction
 
 " - py.test type trailing function name, i.e. '::test_method'
 "   trigger with '?*::?*' pattern
-let s:specs.pytest = {'pattern': '\m::\(\w\+\)$'}
+let s:specs.pytest = {
+\ 'pattern': '\m::\(\w\+\)$',
+\  'method': '\m^\s*def\s\+\%(\\\n\s*\)*\zs%s\s*(',
+\ }
 function! s:specs.pytest.parse(file) abort
+  let l:name = matchlist(a:file, self.pattern)[1]
   return [substitute(a:file, self.pattern, '', ''),
-        \ [self.seek, [matchlist(a:file, self.pattern)[1]]]]
+        \ [self.seek, [printf(self.method, l:name)]]]
 endfunction
-function! s:specs.pytest.seek(method) abort
-  " implement position seeking
-  echomsg "Seek" a:method "in" bufname('%')
+function! s:specs.pytest.seek(pattern) abort
+  let l:pos = &filetype is 'python' ? searchpos(a:pattern, 'cnw') : [0, 0]
+  return l:pos[0] is 0 ? getpos('.')[1:2] : l:pos
 endfunction " }}}
 
 " Detection methods for buffers that bypass `filereadable()`: {{{
@@ -136,15 +140,19 @@ function! fetch#edit(file, spec) abort
 endfunction
 
 " Place the current buffer's cursor at {pos}:
-" @signature:  fetch#setpos({pos:List<Number[,Number]>})
+" @signature:  fetch#setpos({at:List<lnum:Number[,col:Number])
+"              fetch#setpos({at:List<func:Funcref[,funcargs:Any[,...]]>})
 " @returns:    Boolean
-" @notes:      triggers the |User| events
-"              - BufFetchPosPre before setting the position
-"              - BufFetchPosPost after setting the position
-function! fetch#setpos(pos) abort
-  let b:fetch_lastpos = type(a:pos[0]) is type(function('tr'))
-                    \ ? call(a:pos[0], a:pos[1])
-                    \ : [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
+" @notes:      - with {at} as Number literal(s): jumps to {lnum, col}
+"              - with {at} as {func} Funcref, calls that with {funcargs} and
+"                jumps to the position returned
+"              - triggers the |User| events
+"                - BufFetchPosPre before setting the position
+"                - BufFetchPosPost after setting the position
+function! fetch#setpos(at) abort
+  let b:fetch_lastpos = type(a:at[0]) is type(function('tr'))
+                    \ ? call(a:at[0], get(a:at, 1, []))
+                    \ : [max([a:at[0], 1]), max([get(a:at, 1, 0), 1])]
   silent doautocmd <nomodeline> User BufFetchPosPre
   call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zOzz
