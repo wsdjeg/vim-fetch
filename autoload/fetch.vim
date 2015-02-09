@@ -31,34 +31,36 @@ let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)$'}
 function! s:specs.plan9.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ [matchlist(a:file, self.pattern)[1]]]
-
-" Detection methods for buffers that bypass `filereadable()`:
-let s:ignore = []
 endfunction " }}}
 
-" - non-file buffer types
-call add(s:ignore, {'types': ['quickfix', 'acwrite', 'nofile']})
-function! s:ignore[-1].detect(buffer) abort
-  return index(self.types, getbufvar(a:buffer, '&buftype')) isnot -1
-endfunction
-
-" - non-document file types that do not trigger the above
-"   not needed for: Unite / VimFiler / VimShell / CtrlP / Conque-Shell
-call add(s:ignore, {'types': ['netrw']})
-function! s:ignore[-1].detect(buffer) abort
-  return index(self.types, getbufvar(a:buffer, '&filetype')) isnot -1
-endfunction
-
-" - redirected buffers
-call add(s:ignore, {'bufvars': ['netrw_lastfile']})
-function! s:ignore[-1].detect(buffer) abort
-  for l:var in self.bufvars
-    if !empty(getbufvar(a:buffer, l:var))
+" Detection heuristics for buffers that should not be resolved: {{{
+let s:bufignore = {'freaks': []}
+function! s:bufignore.detect(bufnr) abort
+  for l:freak in self.freaks
+    if l:freak.detect(a:bufnr) is 1
       return 1
     endif
   endfor
-  return 0
+  return filereadable(bufname(a:bufnr))
 endfunction
+
+" - unlisted status as a catch-all for UI type buffers
+call add(s:bufignore.freaks, {})
+function! s:bufignore.freaks[-1].detect(buffer) abort
+  return buflisted(a:buffer) is 0
+endfunction
+
+" - any 'buftype' but empty and "nowrite" as explicitly marked "not a file"
+call add(s:bufignore.freaks, {'buftypes': ['', 'nowrite']})
+function! s:bufignore.freaks[-1].detect(buffer) abort
+  return index(self.buftypes, getbufvar(a:buffer, '&buftype')) is -1
+endfunction
+
+" - out-of-filesystem Netrw file buffers
+call add(s:bufignore.freaks, {})
+function! s:bufignore.freaks[-1].detect(buffer) abort
+    return !empty(getbufvar(a:buffer, 'netrw_lastfile'))
+endfunction " }}}
 
 " Get a copy of vim-fetch's spec matchers:
 " @signature:  fetch#specs()
@@ -81,15 +83,19 @@ endfunction
 "                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
 "                as it won't be able to wipe the spurious new spec'ed buffer
 function! fetch#edit(file, spec) abort
-  " naive early exit on obvious non-matches
-  if filereadable(a:file) || match(a:file, s:specs[a:spec].pattern) is -1
+  let l:bufname = expand('%')
+  let l:spec    = s:specs[a:spec]
+
+  " exclude obvious non-matches
+  if match(l:bufname, l:spec.pattern) is -1
     return 0
   endif
 
-  " check for unspec'ed editable file
-  let [l:file, l:pos] = s:specs[a:spec].parse(a:file)
-  if !filereadable(l:file)
-    return 0                " in doubt, end with invalid user input
+  " only substitute if we have a valid resolved file
+  " and a spurious unresolved buffer both
+  let [l:file, l:pos] = l:spec.parse(l:bufname)
+  if !filereadable(l:file) || s:bufignore.detect(bufnr('%')) is 1
+    return 0
   endif
 
   " processing setup
@@ -109,9 +115,9 @@ function! fetch#edit(file, spec) abort
 
   " clean up argument list
   if has('listcmds')
-    let l:argidx = index(argv(), a:file)
-    if  l:argidx isnot -1   " substitute un-spec'ed file for spec'ed
-      execute 'argdelete' fnameescape(a:file)
+    let l:argidx = index(argv(), l:bufname)
+    if  l:argidx isnot -1
+      execute 'argdelete' fnameescape(l:bufname)
       execute l:argidx.'argadd' fnameescape(l:file)
     endif
   endif
