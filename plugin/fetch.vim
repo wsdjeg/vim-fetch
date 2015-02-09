@@ -28,10 +28,10 @@ let s:matchers = {
 
 augroup fetch
   autocmd!
-  for [s:spec, s:pat] in items(s:matchers)
-    execute 'autocmd BufNewFile,BufWinEnter' s:pat
-          \ 'nested call fetch#edit(expand("<afile>"), "'.s:spec.'")'
-    unlet! s:spec s:pat
+  for [s:spec, s:pattern] in items(s:matchers)
+    execute 'autocmd BufNewFile,BufWinEnter' s:pattern
+          \ 'nested call fetch#buffer("'.s:spec.'")'
+    unlet! s:spec s:pattern
   endfor
 augroup END
 

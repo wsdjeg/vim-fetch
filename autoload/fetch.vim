@@ -75,14 +75,11 @@ function! fetch#specs() abort
   return deepcopy(s:specs)
 endfunction
 
-" Edit {file}, placing the cursor at the line and column indicated by {spec}:
-" @signature:  fetch#edit({file:String}, {spec:String})
-" @returns:    Boolean indicating if a spec has been succesfully resolved
-" @notes:      - won't work from a |BufReadCmd| event as it doesn't load non-spec'ed files
-"              - won't work from events fired before the spec'ed file is loaded into
-"                the buffer (i.e. before '%' is set to the spec'ed file) like |BufNew|
-"                as it won't be able to wipe the spurious new spec'ed buffer
-function! fetch#edit(file, spec) abort
+" Resolve {spec} for the current buffer, substituting the resolved
+" file (if any) for it, with the cursor placed at the resolved position:
+" @signature:  fetch#buffer({spec:String})
+" @returns:    Boolean
+function! fetch#buffer(spec) abort
   let l:bufname = expand('%')
   let l:spec    = s:specs[a:spec]
 
@@ -98,22 +95,11 @@ function! fetch#edit(file, spec) abort
     return 0
   endif
 
-  " processing setup
-  let l:pre = ''            " will be prefixed to edit command
+  " we have a spurious unresolved buffer: set up for wiping
+  set buftype=nowrite       " avoid issues voiding the buffer
+  set bufhidden=wipe        " avoid issues with |bwipeout|
 
-  " if current buffer is spec'ed and invalid set it up for wiping
-  if expand('%:p') is fnamemodify(a:file, ':p')
-    for l:ignore in s:ignore
-      if l:ignore.detect(bufnr('%')) is 1
-        return 0
-      endif
-    endfor
-    set buftype=nowrite     " avoid issues voiding the buffer
-    set bufhidden=wipe      " avoid issues with |bwipeout|
-    let l:pre .= 'keepalt ' " don't mess up alternate file on switch
-  endif
-
-  " clean up argument list
+  " substitute resolved file for unresolved buffer on arglist
   if has('listcmds')
     let l:argidx = index(argv(), l:bufname)
     if  l:argidx isnot -1
@@ -122,13 +108,15 @@ function! fetch#edit(file, spec) abort
     endif
   endif
 
-  " edit on argument list if required
+  " set arglist index to resolved file if required
+  " (needs to happen independently of arglist switching to work
+  " with the double processing of the first -o/-O/-p window)
   if index(argv(), l:file) isnot -1
-    let l:pre .= 'arg'    " set arglist index to edited file
+    let l:cmd = 'argedit'
   endif
 
-  " open correct file and place cursor at position spec
-  execute l:pre.'edit' fnameescape(l:file)
+  " edit resolved file and place cursor at position spec
+  execute 'keepalt' get(l:, 'cmd', 'edit') fnameescape(l:file)
   return fetch#setpos(l:pos)
 endfunction
 
