@@ -1,4 +1,8 @@
 " AUTOLOAD FUNCTION LIBRARY FOR VIM-FETCH
+if &compatible || v:version < 700
+  finish
+endif
+
 let s:cpo = &cpo
 set cpo&vim
 
