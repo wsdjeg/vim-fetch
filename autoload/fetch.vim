@@ -38,7 +38,7 @@ let s:specs.pytest = {
 function! s:specs.pytest.parse(file) abort
   let l:name = matchlist(a:file, self.pattern)[1]
   return [substitute(a:file, self.pattern, '', ''),
-        \ [self.seek, [printf(self.method, l:name)]]]
+        \ [self.seek, self, [printf(self.method, l:name)]]]
 endfunction
 function! s:specs.pytest.seek(pattern) abort
   let l:pos = &filetype is 'python' ? searchpos(a:pattern, 'cnw') : [0, 0]
@@ -151,7 +151,7 @@ endfunction
 "                - BufFetchPosPost after setting the position
 function! fetch#setpos(at) abort
   let b:fetch_lastpos = type(a:at[0]) is type(function('tr'))
-                    \ ? call(a:at[0], get(a:at, 1, []))
+                    \ ? call(a:at[0], get(a:at, 2, []), a:at[1])
                     \ : [max([a:at[0], 1]), max([get(a:at, 1, 0), 1])]
   silent doautocmd <nomodeline> User BufFetchPosPre
   call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
