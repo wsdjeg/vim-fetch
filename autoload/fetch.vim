@@ -70,7 +70,7 @@ endfunction " }}}
 "              - 'parse' Funcref taking a spec'ed file name and
 "                 returning a two item List of
 "                 {unspec'ed path:String}, {pos:List<Number[,Number]>}
-" @notes:     the autocommand match patterns are not included
+" @notes:      the autocommand match patterns are not included
 function! fetch#specs() abort
   return deepcopy(s:specs)
 endfunction
