@@ -128,11 +128,15 @@ endfunction
 "              - BufFetchPosPost after setting the position
 function! fetch#setpos(pos) abort
   call s:doautocmd('BufFetchPosPre')
-  let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
+  let b:fetch_lastpos = [max([a:pos[0], 0]), max([get(a:pos, 1, 0), 0])]
+  if b:fetch_lastpos == [0, 0]
+    unlet b:fetch_lastpos
+    return 0
+  endif
   call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zOzz
   call s:doautocmd('BufFetchPosPost')
-  return getpos('.')[1:2] == b:fetch_lastpos
+  return 1
 endfunction
 
 " Private helper functions: {{{
