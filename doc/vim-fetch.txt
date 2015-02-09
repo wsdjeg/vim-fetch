@@ -63,15 +63,9 @@ with vim-fetch.
 
 vim-fetch triggers two |User| autocommand events when setting the position in
 a buffer: `BufFetchPosPre` before and `BufFetchPosPost` after.
+Notes: `BufFetchPosPost` is fired if the position fetch function completes,
+it does not guarantee the final position of the cursor.
 
-Notes:	- BufFetchPosPost is fired if the position fetch function completes, it
-	  does not guarantee the final position of the cursor.
-	- The events are triggered with |:silent| to avoid flooding message
-	  history with "No matching autocommands" messages. Use |:unsilent| to
-	  restore normal message processing, i.e.
->
-		autocmd User BufFetchPosPre unsilent echomsg 'Gotcha!'
-<
 ==============================================================================
 3. Position specifications			*vim-fetch-specs*
 

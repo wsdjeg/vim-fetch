@@ -127,13 +127,24 @@ endfunction
 "              - BufFetchPosPre before setting the position
 "              - BufFetchPosPost after setting the position
 function! fetch#setpos(pos) abort
-  silent doautocmd <nomodeline> User BufFetchPosPre
+  call s:doautocmd('BufFetchPosPre')
   let b:fetch_lastpos = [max([a:pos[0], 1]), max([get(a:pos, 1, 0), 1])]
   call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
   silent! normal! zOzz
-  silent doautocmd <nomodeline> User BufFetchPosPost
+  call s:doautocmd('BufFetchPosPost')
   return getpos('.')[1:2] == b:fetch_lastpos
 endfunction
+
+" Private helper functions: {{{
+" - apply User autocommands matching {pattern}, but only if there are any
+"   1. avoids flooding message history with "No matching autocommands"
+"   2. avoids re-applying modelines in Vim < 7.3.442, which doesn't honor |<nomodeline>|
+"   see https://groups.google.com/forum/#!topic/vim_dev/DidKMDAsppw
+function! s:doautocmd(pattern) abort
+  if exists('#User#'.a:pattern)
+    execute 'doautocmd <nomodeline> User' a:pattern
+  endif
+endfunction " }}}
 
 let &cpo = s:cpo
 unlet! s:cpo
