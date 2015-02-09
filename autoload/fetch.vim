@@ -6,7 +6,7 @@ endif
 let s:cpo = &cpo
 set cpo&vim
 
-" Position specs Dictionary:
+" Position specs Dictionary: {{{
 let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
@@ -31,10 +31,10 @@ let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)$'}
 function! s:specs.plan9.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ [matchlist(a:file, self.pattern)[1]]]
-endfunction
 
 " Detection methods for buffers that bypass `filereadable()`:
 let s:ignore = []
+endfunction " }}}
 
 " - non-file buffer types
 call add(s:ignore, {'types': ['quickfix', 'acwrite', 'nofile']})
