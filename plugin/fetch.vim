@@ -6,8 +6,8 @@ if &compatible || !has('autocmd') || v:version < 700
   finish
 endif
 
-let s:cpo = &cpo
-set cpo&vim
+let s:cpoptions = &cpoptions
+set cpoptions&vim
 
 " Based on |BufNewFile|, but flanked by |BufWinEnter| to correctly process all
 " buffers in an |arglist| passed with '-o/-O' resp. '-p' (see
@@ -35,7 +35,7 @@ augroup fetch
   endfor
 augroup END
 
-let &cpo = s:cpo
-unlet! s:cpo
+let &cpoptions = s:cpoptions
+unlet! s:cpoptions
 
 " vim:set sw=2 sts=2 ts=2 et fdm=marker fmr={{{,}}}:
