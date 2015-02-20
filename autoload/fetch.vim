@@ -11,7 +11,7 @@ let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
 "   trigger with '?*:[0123456789]*' pattern
-let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?$'}
+let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?'}
 function! s:specs.colon.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ split(matchstr(a:file, self.pattern), ':')]
@@ -19,7 +19,7 @@ endfunction
 
 " - trailing parentheses, i.e. '(lnum[:colnum])'
 "   trigger with '?*([0123456789]*)' pattern
-let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))$'}
+let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))'}
 function! s:specs.paren.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ split(matchlist(a:file, self.pattern)[1], ':')]
@@ -27,7 +27,7 @@ endfunction
 
 " - Plan 9 type line spec, i.e. '[:]#lnum'
 "   trigger with '?*#[0123456789]*' pattern
-let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)$'}
+let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)'}
 function! s:specs.plan9.parse(file) abort
   return [substitute(a:file, self.pattern, '', ''),
         \ [matchlist(a:file, self.pattern)[1]]]
@@ -84,7 +84,7 @@ function! fetch#buffer(spec) abort
   let l:spec    = s:specs[a:spec]
 
   " exclude obvious non-matches
-  if match(l:bufname, l:spec.pattern) is -1
+  if matchend(l:bufname, l:spec.pattern) isnot len(l:bufname)
     return 0
   endif
 
@@ -120,6 +120,74 @@ function! fetch#buffer(spec) abort
   return fetch#setpos(l:pos)
 endfunction
 
+" Edit |<cfile>|, resolving a possible trailing spec:
+" @signature:  fetch#cfile({count:Number})
+" @returns:    Boolean
+" @notes:      - will test all available specs for a match
+"              - will fall back on Vim's |gF| when no spec matches
+function! fetch#cfile(count) abort
+  let l:cfile = expand('<cfile>')
+
+  if !empty(l:cfile)
+    " locate '<cfile>' in current line
+    let l:pattern  = '\M'.escape(l:cfile, '\')
+    let l:position = searchpos(l:pattern, 'bcn', line('.'))
+    if l:position == [0, 0]
+      let l:position = searchpos(l:pattern, 'cn', line('.'))
+    endif
+
+    " test for a trailing spec, accounting for multi-line '<cfile>' matches
+    let l:lines  = split(l:cfile, "\n")
+    let l:line   = getline(l:position[0] + len(l:lines) - 1)
+    let l:offset = (len(l:lines) > 1 ? 0 : l:position[1]) + len(l:lines[-1]) - 1
+    for l:spec in values(s:specs)
+      if match(l:line, l:spec.pattern, l:offset) is l:offset
+        let l:match = matchstr(l:line, l:spec.pattern, l:offset)
+        " leverage Vim's own |gf| for opening the file
+        execute 'normal!' a:count.'gf'
+        return fetch#setpos(l:spec.parse(l:cfile.l:match)[1])
+      endif
+    endfor
+  endif
+
+  " fall back to Vim's |gF|
+  execute 'normal!' a:count.'gF'
+  return 1
+endfunction
+
+" Edit the visually selected file, resolving a possible trailing spec:
+" @signature:  fetch#visual({count:Number})
+" @returns:    Boolean
+" @notes:      - will test all available specs for a match
+"              - will fall back on Vim's |gF| when no spec matches
+function! fetch#visual(count) abort
+  " get text between last visual selection marks
+  " adapted from http://stackoverflow.com/a/6271254/990363
+  let [l:startline, l:startcol] = getpos("'<")[1:2]
+  let [l:endline,   l:endcol]   = getpos("'>")[1:2]
+  let l:endcol -= &selection is 'inclusive' ? 0 : 1
+  let lines     = getline(l:startline, l:endline)
+  let lines[-1] = matchstr(lines[-1], '\m^.\{'.string(l:endcol).'}')
+  let lines[0]  = matchstr(lines[0],  '\m^.\{'.string(l:startcol - 1).'}\zs.*')
+  let l:selection = join(lines, "\n")
+
+  " test for a trailing spec
+  if !empty(l:selection)
+    let l:line = getline(l:endline)
+    for l:spec in values(s:specs)
+      if match(l:line, l:spec.pattern, l:endcol) is l:endcol
+        let l:match = matchstr(l:line, l:spec.pattern, l:endcol)
+        call s:dovisual(a:count.'gf') " leverage Vim's |gf| to get the file
+        return fetch#setpos(l:spec.parse(l:selection.l:match)[1])
+      endif
+    endfor
+  endif
+
+  " fall back to Vim's |gF|
+  call s:dovisual(a:count.'gF')
+  return 1
+endfunction
+
 " Place the current buffer's cursor at {pos}:
 " @signature:  fetch#setpos({pos:List<Number[,Number]>})
 " @returns:    Boolean
@@ -148,7 +216,13 @@ function! s:doautocmd(pattern) abort
   if exists('#User#'.a:pattern)
     execute 'doautocmd <nomodeline> User' a:pattern
   endif
-endfunction " }}}
+endfunction
+
+" - send command to the last visual selection
+function! s:dovisual(command) abort
+  let l:cmd = index(['v', 'V', ''], mode()) is -1 ? 'gv'.a:command : a:command
+  execute 'normal!' l:cmd
+endfunction
 
 let &cpoptions = s:cpoptions
 unlet! s:cpoptions
