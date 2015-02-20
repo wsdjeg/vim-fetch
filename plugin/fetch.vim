@@ -26,6 +26,7 @@ let s:matchers = {
   \   'plan9': '?*#[0123456789]*',
   \ }
 
+" Set up autocommands:
 augroup fetch
   autocmd!
   for [s:spec, s:pattern] in items(s:matchers)
@@ -34,6 +35,10 @@ augroup fetch
     unlet! s:spec s:pattern
   endfor
 augroup END
+
+" Set up mappings:
+nnoremap gF :<C-u>call fetch#cfile(v:count1)<CR>
+xnoremap gF :<C-u>call fetch#visual(v:count1)<CR>
 
 let &cpoptions = s:cpoptions
 unlet! s:cpoptions
