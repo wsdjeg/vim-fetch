@@ -69,10 +69,11 @@ endfunction " }}}
 " @signature:  fetch#specs()
 " @returns:    Dictionary<Dictionary> of specs, keyed by name,
 "              each spec Dictionary with the following keys:
-"              - 'pattern' String to match the spec in a file name
-"              - 'parse' Funcref taking a spec'ed file name and
-"                 returning a two item List of
-"                 {unspec'ed path:String}, {pos:List<Number[,Number]>}
+"              -'pattern' String to match the spec in a file name
+"              -'parse' Funcref taking a spec'ed file name
+"                and returning a List of
+"                0 unspec'ed path String
+"                1 position setting |call()| arguments List
 " @notes:      the autocommand match patterns are not included
 function! fetch#specs() abort
   return deepcopy(s:specs)
