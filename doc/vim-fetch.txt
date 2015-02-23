@@ -150,6 +150,18 @@ and unspec'ed form. Doing that remotely, even when possible, would add too
 much latency to file opening.
 
 
+:DROP'ING A SPEC TO AN OPEN FILE DOES NOT ACTIVATE ITS WINDOW
+
+Short answer: this is a limitation of the way vim-fetch works.
+
+Long answer: when you |:drop| a spec'ed file, the |:drop| command looks for
+the spec'ed version in your open windows, which it doesn't find. It then
+"loads" the spec'ed buffer, i.e. creates a spurious one, which vim-fetch in
+turn switches out against the correct one; however, vim-fetch has no way to
+detect the buffer was originally created by a |:drop| command, so the switch
+happens in place, instead of in the window where the buffer is already open.
+
+
 MY PROBLEM ISN'T LISTED HERE
 
 You might have found a bug. Please open an issue at
