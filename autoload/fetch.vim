@@ -13,24 +13,27 @@ let s:specs = {}
 "   trigger with '?*:[0123456789]*' pattern
 let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?'}
 function! s:specs.colon.parse(file) abort
-  return [substitute(a:file, self.pattern, '', ''),
-        \ split(matchstr(a:file, self.pattern), ':')]
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let l:pos  = split(matchstr(a:file, self.pattern), ':')
+  return [l:file, ['cursor', [l:pos[0], get(l:pos, 1, 0)]]]
 endfunction
 
 " - trailing parentheses, i.e. '(lnum[:colnum])'
 "   trigger with '?*([0123456789]*)' pattern
 let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))'}
 function! s:specs.paren.parse(file) abort
-  return [substitute(a:file, self.pattern, '', ''),
-        \ split(matchlist(a:file, self.pattern)[1], ':')]
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let l:pos  = split(matchlist(a:file, self.pattern)[1], ':')
+  return [l:file, ['cursor', [l:pos[0], get(l:pos, 1, 0)]]]
 endfunction
 
 " - Plan 9 type line spec, i.e. '[:]#lnum'
 "   trigger with '?*#[0123456789]*' pattern
 let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)'}
 function! s:specs.plan9.parse(file) abort
-  return [substitute(a:file, self.pattern, '', ''),
-        \ [matchlist(a:file, self.pattern)[1]]]
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let l:pos  = matchlist(a:file, self.pattern)[1]
+  return [l:file, ['cursor', [l:pos, 0]]]
 endfunction " }}}
 
 " Detection heuristics for buffers that should not be resolved: {{{
@@ -90,7 +93,7 @@ function! fetch#buffer(spec) abort
 
   " only substitute if we have a valid resolved file
   " and a spurious unresolved buffer both
-  let [l:file, l:pos] = l:spec.parse(l:bufname)
+  let [l:file, l:jump] = l:spec.parse(l:bufname)
   if !filereadable(l:file) || s:bufignore.detect(bufnr('%')) is 1
     return 0
   endif
@@ -117,7 +120,7 @@ function! fetch#buffer(spec) abort
 
   " edit resolved file and place cursor at position spec
   execute 'keepalt' get(l:, 'cmd', 'edit') fnameescape(l:file)
-  return fetch#setpos(l:pos)
+  return s:setpos(l:jump)
 endfunction
 
 " Edit |<cfile>|, resolving a possible trailing spec:
@@ -145,7 +148,7 @@ function! fetch#cfile(count) abort
         let l:match = matchstr(l:line, l:spec.pattern, l:offset)
         " leverage Vim's own |gf| for opening the file
         execute 'normal!' a:count.'gf'
-        return fetch#setpos(l:spec.parse(l:cfile.l:match)[1])
+        return s:setpos(l:spec.parse(l:cfile.l:match)[1])
       endif
     endfor
   endif
@@ -178,7 +181,7 @@ function! fetch#visual(count) abort
       if match(l:line, l:spec.pattern, l:endcol) is l:endcol
         let l:match = matchstr(l:line, l:spec.pattern, l:endcol)
         call s:dovisual(a:count.'gf') " leverage Vim's |gf| to get the file
-        return fetch#setpos(l:spec.parse(l:selection.l:match)[1])
+        return s:setpos(l:spec.parse(l:selection.l:match)[1])
       endif
     endfor
   endif
@@ -188,26 +191,18 @@ function! fetch#visual(count) abort
   return 1
 endfunction
 
-" Place the current buffer's cursor at {pos}:
-" @signature:  fetch#setpos({pos:List<Number[,Number]>})
-" @returns:    Boolean
-" @notes:      triggers the |User| events
-"              - BufFetchPosPre before setting the position
-"              - BufFetchPosPost after setting the position
-function! fetch#setpos(pos) abort
+" Private helper functions: {{{
+" - place the current buffer's cursor, triggering the "BufFetchPosX" events
+"   see :h call() for the format of the {calldata} List
+function! s:setpos(calldata) abort
   call s:doautocmd('BufFetchPosPre')
-  let b:fetch_lastpos = [max([a:pos[0], 0]), max([get(a:pos, 1, 0), 0])]
-  if b:fetch_lastpos == [0, 0]
-    unlet b:fetch_lastpos
-    return 0
-  endif
-  call cursor(b:fetch_lastpos[0], b:fetch_lastpos[1])
+  keepjumps call call('call', a:calldata)
+  let b:fetch_lastpos = getpos('.')[1:2]
   silent! normal! zOzz
   call s:doautocmd('BufFetchPosPost')
   return 1
 endfunction
 
-" Private helper functions: {{{
 " - apply User autocommands matching {pattern}, but only if there are any
 "   1. avoids flooding message history with "No matching autocommands"
 "   2. avoids re-applying modelines in Vim < 7.3.442, which doesn't honor |<nomodeline>|
@@ -223,6 +218,7 @@ function! s:dovisual(command) abort
   let l:cmd = index(['v', 'V', ''], mode()) is -1 ? 'gv'.a:command : a:command
   execute 'normal!' l:cmd
 endfunction
+" }}}
 
 let &cpoptions = s:cpoptions
 unlet! s:cpoptions
