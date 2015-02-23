@@ -50,6 +50,13 @@ Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
 
 
+PYTEST METHOD JUMPS
+
+8. path/to/file.ext::method
+
+Note: this will only find Python method definitions.
+
+
 OTHER SPEC TYPES
 
 If you would you like to see other specs in vim-fetch, open an issue (or even

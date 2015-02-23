@@ -24,6 +24,7 @@ let s:matchers = {
   \   'colon': '?*:[0123456789]*',
   \   'paren': '?*([0123456789]*)',
   \   'plan9': '?*#[0123456789]*',
+  \  'pytest': '?*::?*',
   \ }
 
 " Set up autocommands:

@@ -34,6 +34,16 @@ function! s:specs.plan9.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
   let l:pos  = matchlist(a:file, self.pattern)[1]
   return [l:file, ['cursor', [l:pos, 0]]]
+endfunction
+
+" - Pytest type method spec, i.e. ::method
+"   trigger with '?*::?*' pattern
+let s:specs.pytest = {'pattern': '\m::\(\w\+\)'}
+function! s:specs.pytest.parse(file) abort
+  let l:file   = substitute(a:file, self.pattern, '', '')
+  let l:name   = matchlist(a:file, self.pattern)[1]
+  let l:method = '\m\C^\s*def\s\+\%(\\\n\s*\)*\zs'.l:name.'\s*('
+  return [l:file, ['search', [l:method, 'cw']]]
 endfunction " }}}
 
 " Detection heuristics for buffers that should not be resolved: {{{
