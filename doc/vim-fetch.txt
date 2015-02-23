@@ -47,6 +47,14 @@ This works for any command that opens files with |edit| semantics, including
 |argedit|, |pedit| and |diffsplit| on local file systems (e.g. not for |netrw|
 remote editing).
 
+Using |gF| on either |<cfile>| or a visual selection will recognize trailing
+vim-fetch specs besides the ones supported by Vim, e.g, with the cursor at the
+position indicated by `^`
+>
+	Debug info: path^/to/file.ext(170:5)
+<
+a normal mode `gF` will open `file.ext` and jump to line 170, column 5.
+
 
 INTEGRATION:
 
