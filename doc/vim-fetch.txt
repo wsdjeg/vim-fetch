@@ -7,8 +7,8 @@
 Jump to lines and columns specified in buffer names	*vim-fetch*
 
 1. Introduction				|vim-fetch-introduction|
-2. Usage				|vim-fetch-usage|
-3. Position specifications		|vim-fetch-specs|
+2. Position specifications		|vim-fetch-specs|
+3. Usage				|vim-fetch-usage|
 4. Troubleshooting			|vim-fetch-troubleshooting|
 5. Credits and license			|vim-fetch-credits-license|
 
@@ -23,7 +23,42 @@ a file, Vim with vim-fetch will jump to the specified line (and column, if
 given) instead of displaying an empty, new file.
 
 ==============================================================================
-2. Usage					*vim-fetch-usage*
+2. Position specifications			*vim-fetch-specs*
+
+vim-fetch understands the following position specifications ("specs"):
+
+
+COLON SEPARATED
+
+1. path/to/file.ext:lnum
+2. path/to/file.ext:lnum:
+3. path/to/file.ext:lnum:colnum
+4. path/to/file.ext:lnum:colnum:
+
+
+PARENTHESES ENCLOSED
+
+5. path/to/file.ext(lnum)
+6. path/to/file.ext(lnum:colnum)
+
+
+PLAN 9 STYLE
+
+7. path/to/file.ext:#lnum
+
+Note: `#` is the alternate file token and needs to be escaped to be used on
+the command line (see |cmdline-special|).
+
+
+OTHER SPEC TYPES
+
+If you would you like to see other specs in vim-fetch, open an issue (or even
+better: send a PR) for them at
+
+	https://github.com/kopischke/vim-fetch
+
+==============================================================================
+3. Usage					*vim-fetch-usage*
 
 
 FROM OUTSIDE VIM:
@@ -74,41 +109,6 @@ a buffer: *BufFetchPosPre* before and *BufFetchPosPost* after.
 
 Notes: `BufFetchPosPost` is fired if the position fetch function completes,
 it does not guarantee the final position of the cursor.
-
-==============================================================================
-3. Position specifications			*vim-fetch-specs*
-
-vim-fetch understands the following position specifications:
-
-
-COLON SEPARATED
-
-1. path/to/file.ext:lnum
-2. path/to/file.ext:lnum:
-3. path/to/file.ext:lnum:colnum
-4. path/to/file.ext:lnum:colnum:
-
-
-PARENTHESES ENCLOSED
-
-5. path/to/file.ext(lnum)
-6. path/to/file.ext(lnum:colnum)
-
-
-PLAN 9 STYLE
-
-7. path/to/file.ext:#lnum
-
-Note: `#` is the alternate file token and needs to be escaped to be used on
-the command line (see |cmdline-special|).
-
-
-OTHER SPEC TYPES
-
-If you would you like to see other specs in vim-fetch, open an issue (or even
-better: send a PR) for them at
-
-	https://github.com/kopischke/vim-fetch
 
 ==============================================================================
 4. Troubleshooting			*vim-fetch-troubleshooting*
