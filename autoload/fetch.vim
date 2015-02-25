@@ -85,15 +85,15 @@ endfunction " }}}
 "                0 unspec'ed path String
 "                1 position setting |call()| arguments List
 " @notes:      the autocommand match patterns are not included
-function! fetch#specs() abort
+function! fetch#specs() abort " {{{
   return deepcopy(s:specs)
-endfunction
+endfunction " }}}
 
 " Resolve {spec} for the current buffer, substituting the resolved
 " file (if any) for it, with the cursor placed at the resolved position:
 " @signature:  fetch#buffer({spec:String})
 " @returns:    Boolean
-function! fetch#buffer(spec) abort
+function! fetch#buffer(spec) abort " {{{
   let l:bufname = expand('%')
   let l:spec    = s:specs[a:spec]
 
@@ -135,14 +135,14 @@ function! fetch#buffer(spec) abort
     execute 'normal' v:swapcommand
   endif
   return s:setpos(l:jump)
-endfunction
+endfunction " }}}
 
 " Edit |<cfile>|, resolving a possible trailing spec:
 " @signature:  fetch#cfile({count:Number})
 " @returns:    Boolean
 " @notes:      - will test all available specs for a match
 "              - will fall back on Vim's |gF| when no spec matches
-function! fetch#cfile(count) abort
+function! fetch#cfile(count) abort " {{{
   let l:cfile = expand('<cfile>')
 
   if !empty(l:cfile)
@@ -170,14 +170,14 @@ function! fetch#cfile(count) abort
   " fall back to Vim's |gF|
   execute 'normal!' a:count.'gF'
   return 1
-endfunction
+endfunction " }}}
 
 " Edit the visually selected file, resolving a possible trailing spec:
 " @signature:  fetch#visual({count:Number})
 " @returns:    Boolean
 " @notes:      - will test all available specs for a match
 "              - will fall back on Vim's |gF| when no spec matches
-function! fetch#visual(count) abort
+function! fetch#visual(count) abort " {{{
   " get text between last visual selection marks
   " adapted from http://stackoverflow.com/a/6271254/990363
   let [l:startline, l:startcol] = getpos("'<")[1:2]
@@ -203,7 +203,7 @@ function! fetch#visual(count) abort
   " fall back to Vim's |gF|
   call s:dovisual(a:count.'gF')
   return 1
-endfunction
+endfunction " }}}
 
 " Private helper functions: {{{
 " - place the current buffer's cursor, triggering the "BufFetchPosX" events
