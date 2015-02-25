@@ -5,13 +5,18 @@
 
 ## Fetch that line and column, boy!
 
-*vim-fetch* enables Vim to process line and column jump specifications in file paths as found in stack traces and similar output. When asked to open such a file, Vim with *vim-fetch* will jump to the specified line (and column, if given) instead of displaying an empty, new file.
+*vim-fetch* enables Vim to process line and column jump specifications in file paths as found in stack traces and similar output. When asked to open such a file, in- or outside Vim or via `gF`, Vim with *vim-fetch* will jump to the specified line (and column, if given) instead of displaying an empty, new file.
 
 If you have wished Vim would understand stack trace formats when opening files, *vim-fetch* is for you.
 
 ### Usage
 
-TL;DR: `vim path/to/file.ext:12:3` in the shell to open `file.ext`on line 12 at column 3, or `:e[dit] path/to/file.ext:100:12` in Vim to edit `file.ext` on line 100 at column 12. For more, see the [documentation][doc].
+- `vim path/to/file.ext:12:3` in the shell to open `file.ext`on line 12 at column 3
+- `:e[dit] path/to/file.ext:100:12` in Vim to edit `file.ext` on line 100 at column 12
+- `gF` with the cursor at `^` on `path/to^/file.ext:98,8` to edit `file.ext` on line 98, column 8
+- `gF` with the selection `|...|` on `|path to/file.ext|:5:2` to edit `file.ext` on line 5, column 2
+
+Besides the GNU colon format, *vim-fetch* supports various other jump specification formats, including some that search for keywords or method definitions. For more, see the [documentation][doc].
 
 ### Rationale
 
