@@ -9,11 +9,6 @@
 
 If you have wished Vim would understand stack trace formats when opening files, *vim-fetch* is for you.
 
-### Installation
-
-1. The old way: download and source the vimball from the [releases page][releases], then run `:helptags {dir}` on your runtimepath/doc directory. Or,
-2. The plug-in manager way: using a git-based plug-in manager (Pathogen, Vundle, NeoBundle etc.), simply add `kopischke/vim-fetch` to the list of plug-ins, source that and issue your manager's install command.
-
 ### Usage
 
 TL;DR: `vim path/to/file.ext:12:3` in the shell to open `file.ext`on line 12 at column 3, or `:e[dit] path/to/file.ext:100:12` in Vim to edit `file.ext` on line 100 at column 12. For more, see the [documentation][doc].
@@ -21,6 +16,11 @@ TL;DR: `vim path/to/file.ext:12:3` in the shell to open `file.ext`on line 12 at 
 ### Rationale
 
 Quickly jumping to the point indicated by common stack trace output should be a given in an editor; unluckily, Vim has no concept of this out of the box that does not involve a rather convoluted detour through an error file and the Quickfix window. As the one plug-in I found that aims to fix this, Victor Bogado’s [*file_line*][bogado-plugin], had a number of issues (at the time of this writing, it didn’t correctly process multiple files given with a window switch, i.e. [`-o`, `-O`][bogado-issue-winswitch] and [`-p`][bogado-issue-tabswitch], and I found it choked autocommand processing for the first loaded file on the arglist), I wrote my own.
+
+### Installation
+
+1. The old way: download and source the vimball from the [releases page][releases], then run `:helptags {dir}` on your runtimepath/doc directory. Or,
+2. The plug-in manager way: using a git-based plug-in manager (Pathogen, Vundle, NeoBundle etc.), simply add `kopischke/vim-fetch` to the list of plug-ins, source that and issue your manager's install command.
 
 ### License
 
