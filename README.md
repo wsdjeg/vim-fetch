@@ -7,7 +7,7 @@
 
 *vim-fetch* enables Vim to process line and column jump specifications in file paths as found in stack traces and similar output. When asked to open such a file, in- or outside Vim or via `gF`, Vim with *vim-fetch* will jump to the specified line (and column, if given) instead of displaying an empty, new file.
 
-If you have wished Vim would understand stack trace formats when opening files, *vim-fetch* is for you.
+If you have wished Vim would have a better understanding of stack trace formats than what it offers out of the box, *vim-fetch* is for you.
 
 ### Usage
 
