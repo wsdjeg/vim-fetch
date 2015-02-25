@@ -130,7 +130,10 @@ function! fetch#buffer(spec) abort
   endif
 
   " edit resolved file and place cursor at position spec
-  execute 'keepalt' get(l:, 'cmd', 'edit') fnameescape(l:file)
+  execute 'keepalt' get(l:, 'cmd', 'edit').v:cmdarg fnameescape(l:file)
+  if !empty(v:swapcommand)
+    execute 'normal' v:swapcommand
+  endif
   return s:setpos(l:jump)
 endfunction
 
