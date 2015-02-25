@@ -1,4 +1,4 @@
-*vim-fetch.txt*        For Vim version 7.0 or better          version 1.3.0
+*vim-fetch.txt*        For Vim version 7.0 or better          version 2.0.0
 
 
 		VIM REFERENCE for the Fetch plug-in
@@ -7,8 +7,8 @@
 Jump to lines and columns specified in buffer names	*vim-fetch*
 
 1. Introduction				|vim-fetch-introduction|
-2. Usage				|vim-fetch-usage|
-3. Position specifications		|vim-fetch-specs|
+2. Position specifications		|vim-fetch-specs|
+3. Usage				|vim-fetch-usage|
 4. Troubleshooting			|vim-fetch-troubleshooting|
 5. Credits and license			|vim-fetch-credits-license|
 
@@ -23,59 +23,9 @@ a file, Vim with vim-fetch will jump to the specified line (and column, if
 given) instead of displaying an empty, new file.
 
 ==============================================================================
-2. Usage					*vim-fetch-usage*
+2. Position specifications			*vim-fetch-specs*
 
-
-FROM OUTSIDE VIM:
->
-	vim path/to/file.ext:12:3
-<
-will open `file.ext` and jump to line 12, column 3.
-
-This works for multiple files (|arglist| passing) in any mix of spec'ed and
-unspec'ed paths, and with all Vim |windows-opening| switches ('-o', '-O', and
-'-p' if compiled with |+windows|)
-
-
-FROM INSIDE VIM:
->
-	:e[dit] path/to/file.ext:100:12
-<
-will open `file.ext` and jump to line 100, column 12.
-
-This works for any command that opens files with |edit| semantics, including
-|argedit|, |pedit| and |diffsplit| on local file systems (e.g. not for |netrw|
-remote editing).
-
-
-INTEGRATION:
-
-1. position buffer local variable		*b:fetch_lastpos*
-
-After processing a spec for a buffer, vim-fetch sets a buffer-local variable:
->
-	let b:fetch_lastpos = [lnum, colnum]
-<
-You can use the presence and / or values of that variable to integrate
-with vim-fetch.
-
-2. autocommand API				*BufFetchPosPre* *BufFetchPosPost*
-
-vim-fetch triggers two |User| autocommand events when setting the position in
-a buffer: `BufFetchPosPre` before and `BufFetchPosPost` after.
-
-Notes:	- BufFetchPosPost is fired if the position fetch function completes, it
-	  does not guarantee the final position of the cursor.
-	- The events are triggered with |:silent| to avoid flooding message
-	  history with "No matching autocommands" messages. Use |:unsilent| to
-	  restore normal message processing, i.e.
->
-		autocmd User BufFetchPosPre unsilent echomsg 'Gotcha!'
-<
-==============================================================================
-3. Position specifications			*vim-fetch-specs*
-
-vim-fetch understands the following position specifications:
+vim-fetch understands the following position specifications ("specs"):
 
 
 COLON SEPARATED
@@ -100,12 +50,72 @@ Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
 
 
+PYTEST METHOD JUMPS
+
+8. path/to/file.ext::method
+
+Note: this will only find Python method definitions.
+
+
 OTHER SPEC TYPES
 
 If you would you like to see other specs in vim-fetch, open an issue (or even
 better: send a PR) for them at
 
 	https://github.com/kopischke/vim-fetch
+
+==============================================================================
+3. Usage					*vim-fetch-usage*
+
+
+FROM OUTSIDE VIM:
+>
+	vim path/to/file.ext:12:3
+<
+will open `file.ext` and jump to line 12, column 3.
+
+This works for multiple files (|arglist| passing) in any mix of spec'ed and
+unspec'ed paths, and with all Vim |windows-opening| switches ('-o', '-O', and
+'-p' if compiled with |+windows|)
+
+
+FROM INSIDE VIM:
+>
+	:e[dit] path/to/file.ext:100:12
+<
+will open `file.ext` and jump to line 100, column 12.
+
+This works for any command that opens files with |edit| semantics, including
+|argedit|, |pedit| and |diffsplit| on local file systems (e.g. not for |netrw|
+remote editing).
+
+Using |gF| on either |<cfile>| or a visual selection will recognize trailing
+vim-fetch specs besides the ones supported by Vim, e.g, with the cursor at the
+position indicated by `^`
+>
+	Debug info: path^/to/file.ext(170:5)
+<
+a normal mode `gF` will open `file.ext` and jump to line 170, column 5.
+
+
+INTEGRATION:
+
+1. Position buffer local variable		*b:fetch_lastpos*
+
+After processing a spec for a buffer, vim-fetch sets a buffer-local variable:
+>
+	let b:fetch_lastpos = [lnum, colnum]
+<
+You can use the presence and / or values of that variable to integrate
+with vim-fetch.
+
+2. Autocommand API				*vim-fetch-autocommands*
+
+vim-fetch triggers two |User| autocommand events when setting the position in
+a buffer: *BufFetchPosPre* before and *BufFetchPosPost* after.
+
+Notes: `BufFetchPosPost` is fired if the position fetch function completes,
+it does not guarantee the final position of the cursor.
 
 ==============================================================================
 4. Troubleshooting			*vim-fetch-troubleshooting*
@@ -138,6 +148,18 @@ I CAN'T JUMP TO LINES IN REMOTE FILES VIA NETRW
 This is by design: vim-fetch needs to check for readable files in both spec'ed
 and unspec'ed form. Doing that remotely, even when possible, would add too
 much latency to file opening.
+
+
+:DROP'ING A SPEC TO AN OPEN FILE DOES NOT ACTIVATE ITS WINDOW
+
+Short answer: this is a limitation of the way vim-fetch works.
+
+Long answer: when you |:drop| a spec'ed file, the |:drop| command looks for
+the spec'ed version in your open windows, which it doesn't find. It then
+"loads" the spec'ed buffer, i.e. creates a spurious one, which vim-fetch in
+turn switches out against the correct one; however, vim-fetch has no way to
+detect the buffer was originally created by a |:drop| command, so the switch
+happens in place, instead of in the window where the buffer is already open.
 
 
 MY PROBLEM ISN'T LISTED HERE
