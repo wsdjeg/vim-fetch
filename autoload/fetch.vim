@@ -182,11 +182,17 @@ function! fetch#visual(count) abort " {{{
   " adapted from http://stackoverflow.com/a/6271254/990363
   let [l:startline, l:startcol] = getpos("'<")[1:2]
   let [l:endline,   l:endcol]   = getpos("'>")[1:2]
+  let l:endcol  = min([l:endcol, col([l:endline, '$'])]) " 'V' col nr. bug
   let l:endcol -= &selection is 'inclusive' ? 0 : 1
-  let lines     = getline(l:startline, l:endline)
-  let lines[-1] = matchstr(lines[-1], '\m^.\{'.string(l:endcol).'}')
-  let lines[0]  = matchstr(lines[0],  '\m^.\{'.string(l:startcol - 1).'}\zs.*')
-  let l:selection = join(lines, "\n")
+  let l:lines   = getline(l:startline, l:endline)
+  if visualmode() isnot? 'v' " block-wise selection
+    let l:endexpr = 'matchstr(v:val, "\\m^.*\\%'.string(l:endcol).'c.\\?")'
+    call map(l:lines, 'strpart('.l:endexpr.', '.string(l:startcol-1).')')
+  else
+    let l:lines[-1] = matchstr(lines[-1], '\m^.*\%'.string(l:endcol).'c.\?')
+    let l:lines[0]  = strpart(l:lines[0], l:startcol-1)
+  endif
+  let l:selection = join(l:lines, "\n")
 
   " test for a trailing spec
   if !empty(l:selection)
