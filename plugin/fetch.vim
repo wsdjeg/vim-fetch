@@ -1,7 +1,7 @@
 " SIMPLIFIED TAKE ON BOGADO/FILE-LINE (HOPEFULLY) WITHOUT THE WARTS
 " Maintainer: Martin Kopischke <martin@kopischke.net>
 " License:    MIT (see LICENSE.md)
-" Version:    2.0.1
+" Version:    2.0.2
 if &compatible || !has('autocmd') || v:version < 700
   finish
 endif
