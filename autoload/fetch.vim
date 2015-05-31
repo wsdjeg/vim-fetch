@@ -130,7 +130,13 @@ function! fetch#buffer(spec) abort " {{{
   endif
 
   " edit resolved file and place cursor at position spec
-  execute 'keepalt' get(l:, 'cmd', 'edit').v:cmdarg fnameescape(l:file)
+  let l:shortmess = &shortmess
+  set shortmess+=oO " avoid "Press ENTER" prompt on switch
+  try
+    execute 'keepalt' get(l:, 'cmd', 'edit').v:cmdarg fnameescape(l:file)
+  finally
+    let &shortmess = l:shortmess
+  endtry
   if !empty(v:swapcommand)
     execute 'normal' v:swapcommand
   endif
