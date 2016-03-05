@@ -20,26 +20,22 @@ set cpoptions&vim
 "
 " Note the use of highly spec specific file name patterns to avoid autocommand
 " flooding when nesting (which is needed as we switch buffers out).
-let s:matchers = {
-  \   'colon': '?*:[0123456789]*',
-  \   'paren': '?*([0123456789]*)',
-  \   'plan9': '?*#[0123456789]*',
-  \  'pytest': '?*::?*',
-  \ }
+let s:specdict = fetch#specs#bykey('pattern')
+let s:speclist = fetch#specs#list()
 
 " Set up autocommands:
 augroup fetch
   autocmd!
-  for [s:spec, s:pattern] in items(s:matchers)
+  for s:pattern in keys(s:specdict)
     execute 'autocmd BufNewFile,BufWinEnter' s:pattern
-          \ 'nested call fetch#buffer("'.s:spec.'")'
-    unlet! s:spec s:pattern
+          \ 'nested call fetch#buffer(s:specdict["'.s:pattern.'"])'
+    unlet! s:pattern
   endfor
 augroup END
 
 " Set up mappings:
-nnoremap gF :<C-u>call fetch#cfile(v:count1)<CR>
-xnoremap gF :<C-u>call fetch#visual(v:count1)<CR>
+nnoremap gF :<C-u>call fetch#cfile(v:count1, <SID>speclist)<CR>
+xnoremap gF :<C-u>call fetch#visual(v:count1, <SID>speclist)<CR>
 
 let &cpoptions = s:cpoptions
 unlet! s:cpoptions

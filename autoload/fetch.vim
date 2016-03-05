@@ -6,46 +6,6 @@ endif
 let s:cpoptions = &cpoptions
 set cpoptions&vim
 
-" Position specs Dictionary: {{{
-let s:specs = {}
-
-" - trailing colon, i.e. ':lnum[:colnum[:]]'
-"   trigger with '?*:[0123456789]*' pattern
-let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?'}
-function! s:specs.colon.parse(file) abort
-  let l:file = substitute(a:file, self.pattern, '', '')
-  let l:pos  = split(matchstr(a:file, self.pattern), ':')
-  return [l:file, ['cursor', [l:pos[0], get(l:pos, 1, 0)]]]
-endfunction
-
-" - trailing parentheses, i.e. '(lnum[:colnum])'
-"   trigger with '?*([0123456789]*)' pattern
-let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))'}
-function! s:specs.paren.parse(file) abort
-  let l:file = substitute(a:file, self.pattern, '', '')
-  let l:pos  = split(matchlist(a:file, self.pattern)[1], ':')
-  return [l:file, ['cursor', [l:pos[0], get(l:pos, 1, 0)]]]
-endfunction
-
-" - Plan 9 type line spec, i.e. '[:]#lnum'
-"   trigger with '?*#[0123456789]*' pattern
-let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)'}
-function! s:specs.plan9.parse(file) abort
-  let l:file = substitute(a:file, self.pattern, '', '')
-  let l:pos  = matchlist(a:file, self.pattern)[1]
-  return [l:file, ['cursor', [l:pos, 0]]]
-endfunction
-
-" - Pytest type method spec, i.e. ::method
-"   trigger with '?*::?*' pattern
-let s:specs.pytest = {'pattern': '\m::\(\w\+\)'}
-function! s:specs.pytest.parse(file) abort
-  let l:file   = substitute(a:file, self.pattern, '', '')
-  let l:name   = matchlist(a:file, self.pattern)[1]
-  let l:method = '\m\C^\s*def\s\+\%(\\\n\s*\)*\zs'.l:name.'\s*('
-  return [l:file, ['search', [l:method, 'cw']]]
-endfunction " }}}
-
 " Detection heuristics for buffers that should not be resolved: {{{
 let s:bufignore = {'freaks': []}
 function! s:bufignore.detect(bufnr) abort
@@ -75,38 +35,24 @@ function! s:bufignore.freaks[-1].detect(buffer) abort
     return !empty(getbufvar(a:buffer, 'netrw_lastfile'))
 endfunction " }}}
 
-" Get a copy of vim-fetch's spec matchers:
-" @signature:  fetch#specs()
-" @returns:    Dictionary<Dictionary> of specs, keyed by name,
-"              each spec Dictionary with the following keys:
-"              -'pattern' String to match the spec in a file name
-"              -'parse' Funcref taking a spec'ed file name
-"                and returning a List of
-"                0 unspec'ed path String
-"                1 position setting |call()| arguments List
-" @notes:      the autocommand match patterns are not included
-function! fetch#specs() abort " {{{
-  return deepcopy(s:specs)
-endfunction " }}}
-
-" Resolve {spec} for the current buffer, substituting the resolved
+" Resolve {specs} for the current buffer, substituting the resolved
 " file (if any) for it, with the cursor placed at the resolved position:
-" @signature:  fetch#buffer({spec:String})
+" @signature:  fetch#buffer({specs:List<SpecDictionary>})
 " @returns:    Boolean
-function! fetch#buffer(spec) abort " {{{
+function! fetch#buffer(specs) abort " {{{
   let l:bufname = expand('%')
-  let l:spec    = s:specs[a:spec]
-
-  " exclude obvious non-matches
-  if matchend(l:bufname, l:spec.pattern) isnot len(l:bufname)
-    return 0
+  if s:bufignore.detect(bufnr('%')) is 1
+    return 0 " skip ignored buffers
   endif
 
-  " only substitute if we have a valid resolved file
-  " and a spurious unresolved buffer both
-  let [l:file, l:jump] = l:spec.parse(l:bufname)
-  if !filereadable(l:file) || s:bufignore.detect(bufnr('%')) is 1
-    return 0
+  let l:specmatch = fetch#specs#match(l:bufname, a:specs, -1)
+  if  l:specmatch.pos is -1
+    return 0 " skip when no spec matches
+  endif
+
+  let l:file = substitute(l:bufname, '\V'.escape(l:match, '\').'\$', '', '')
+  if !filereadable(l:file)
+    return 0 " skip non-readable spec matches
   endif
 
   " we have a spurious unresolved buffer: set up for wiping
@@ -140,37 +86,36 @@ function! fetch#buffer(spec) abort " {{{
   if !empty(v:swapcommand)
     execute 'normal' v:swapcommand
   endif
-  return s:setpos(l:jump)
+  return s:setpos(l:spec.parse(l:match, l:file))
 endfunction " }}}
 
-" Edit |<cfile>|, resolving a possible trailing spec:
-" @signature:  fetch#cfile({count:Number})
+" Edit |<cfile>|, resolving a possible trailing spec from {specs}:
+" @signature:  fetch#cfile({count:Number}, {specs:List<SpecDictionary>})
 " @returns:    Boolean
-" @notes:      - will test all available specs for a match
+" @notes:      - see |gf| for the usage of {count}
 "              - will fall back on Vim's |gF| when no spec matches
-function! fetch#cfile(count) abort " {{{
+function! fetch#cfile(count, specs) abort " {{{
   let l:cfile = expand('<cfile>')
 
+  " test for a trailing spec, accounting for multi-line '<cfile>' matches
   if !empty(l:cfile)
     " locate '<cfile>' in current line
-    let l:pattern  = '\M'.escape(l:cfile, '\')
-    let l:position = searchpos(l:pattern, 'bcn', line('.'))
-    if l:position == [0, 0]
-      let l:position = searchpos(l:pattern, 'cn', line('.'))
+    let l:pattern = '\M'.escape(l:cfile, '\')
+    let l:cfstart = searchpos(l:pattern, 'bcn', line('.'))
+    if l:cfstart == [0, 0]
+      let l:cfstart = searchpos(l:pattern, 'cn', line('.'))
     endif
 
     " test for a trailing spec, accounting for multi-line '<cfile>' matches
-    let l:lines  = split(l:cfile, "\n")
-    let l:line   = getline(l:position[0] + len(l:lines) - 1)
-    let l:offset = (len(l:lines) > 1 ? 0 : l:position[1]) + len(l:lines[-1]) - 1
-    for l:spec in values(s:specs)
-      if match(l:line, l:spec.pattern, l:offset) is l:offset
-        let l:match = matchstr(l:line, l:spec.pattern, l:offset)
-        " leverage Vim's own |gf| for opening the file
-        execute 'normal!' a:count.'gf'
-        return s:setpos(l:spec.parse(l:cfile.l:match)[1])
-      endif
-    endfor
+    let l:cflines   = split(l:cfile, "\n")
+    let l:matchline = getline(l:cfstart[0] + len(l:cflines) - 1)
+    let l:matchpos  = (len(l:cflines) > 1 ? 0 : l:cfstart[1]) + len(l:cflines[-1]) - 1
+    let [l:go, l:spec, l:match]
+    \ = fetch#specs#matchatpos(a:specs, l:matchline, l:matchpos)
+    if l:go is 1 " leverage Vim's own |gf| for opening the file
+      execute 'normal!' a:count.'gf'
+      return s:setpos(l:spec.parse(l:match))
+    endif
   endif
 
   " fall back to Vim's |gF|
@@ -178,12 +123,12 @@ function! fetch#cfile(count) abort " {{{
   return 1
 endfunction " }}}
 
-" Edit the visually selected file, resolving a possible trailing spec:
-" @signature:  fetch#visual({count:Number})
+" Edit the visually selected file, resolving a possible trailing spec from {specs}:
+" @signature:  fetch#visual({count:Number}, {specs:List<SpecDictionary>})
 " @returns:    Boolean
-" @notes:      - will test all available specs for a match
+" @notes:      - see |gf| for the usage of {count}
 "              - will fall back on Vim's |gF| when no spec matches
-function! fetch#visual(count) abort " {{{
+function! fetch#visual(count, specs) abort " {{{
   " get text between last visual selection marks
   " adapted from http://stackoverflow.com/a/6271254/990363
   let [l:startline, l:startcol] = getpos("'<")[1:2]
@@ -202,14 +147,12 @@ function! fetch#visual(count) abort " {{{
 
   " test for a trailing spec
   if !empty(l:selection)
-    let l:line = getline(l:endline)
-    for l:spec in values(s:specs)
-      if match(l:line, l:spec.pattern, l:endcol) is l:endcol
-        let l:match = matchstr(l:line, l:spec.pattern, l:endcol)
-        call s:dovisual(a:count.'gf') " leverage Vim's |gf| to get the file
-        return s:setpos(l:spec.parse(l:selection.l:match)[1])
+    let [l:go, l:spec, l:match]
+    \ = fetch#specs#matchatpos(a:specs, getline(l:endline), l:endcol)
+    if l:go is 1 " leverage Vim's |gf| to get the file
+        call s:dovisual(a:count.'gf')
+        return s:setpos(l:spec.parse(l:match))
       endif
-    endfor
   endif
 
   " fall back to Vim's |gF|
@@ -218,6 +161,22 @@ function! fetch#visual(count) abort " {{{
 endfunction " }}}
 
 " Private helper functions: {{{
+" - find the start and end position of {string} under the cursor
+function! s:cpos(string) abort
+  let l:pattern    = '\V'.escape(a:string, '\')
+  let l:cpos       = {'start' = [], 'end' = []}
+  let l:cpos.start = searchpos(l:pattern, 'bcn', line('.'))
+  if  l:cpos.start == [0, 0]
+    let l:cpos.start = searchpos(l:pattern, 'cn', line('.'))
+  endif
+  let l:lines       = split(a:string, "\n")
+  let l:linecount   = len(lines)
+  let l:cpos.end[0] = l:cpos.start[0] + l:linecount - 1
+  let l:cpos.end[1]
+  \ = (l:linecount > 1 ? 0 : l:cpos.start[1]) + len(l:lines[-1]) - 1
+  return l:cpos
+endfunction
+
 " - place the current buffer's cursor, triggering the "BufFetchPosX" events
 "   see :h call() for the format of the {calldata} List
 function! s:setpos(calldata) abort
@@ -226,6 +185,40 @@ function! s:setpos(calldata) abort
   let b:fetch_lastpos = getpos('.')[1:2]
   silent! normal! zOzz
   call s:doautocmd('BufFetchPosPost')
+  return 1
+endfunction
+
+" - try to find a (shortened {cfile}).(spec from {specs}) match
+function! s:cfileseek(cfile, specs) abort
+  let l:cftail     = fnamemodify(l:cfile, ':p:t')
+  let l:cftaillen  = len(l:cftail)
+  let l:cftailpos  = s:cpos(l:cftail)
+  let l:cftailcont = getline(l:cftailpos.end[0])[l:cftailpos.end[1], -1]
+
+  let l:matches    = fetch#specs#matchlist(l:cftail.l:cftailcont, a:specs, l:endcol)
+  call filter(l:matches, 'v:val.pos > 0'
+  \ .' && v:val.pos < '.string(l:cftaillen)
+  \ .' && v:val.pos + len(v:val.match) >= '.string(l:cftaillen))
+  if empty(l:matches)
+    return 0
+  endif
+
+  let l:oldsel = fetch#selection#save()
+  try
+    for l:specmatch in l:matches
+      let l:cfpartpos = s:cpos(l:specmatch.match)
+      call fetch#selection#create('v', l:cfpartpos.start, l:cfpartpos.end)
+      try
+        call fetch#visual(a:count, [l:specmatch.spec])
+      catch /E447/
+        if l:specmatch is l:matches[-1]
+          return 0
+        end if
+      endtry
+    endfor
+  finally
+    call fetch#selection#restore(l:oldsel)
+  endtry
   return 1
 endfunction
 
