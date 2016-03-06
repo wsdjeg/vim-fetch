@@ -50,7 +50,7 @@ function! fetch#buffer(specs) abort " {{{
     return 0 " skip when no spec matches
   endif
 
-  let l:file = substitute(l:bufname, '\V'.escape(l:match, '\').'\$', '', '')
+  let l:file = substitute(l:bufname, '\V'.escape(l:specmatch.match, '\').'\$', '', '')
   if !filereadable(l:file)
     return 0 " skip non-readable spec matches
   endif
@@ -86,7 +86,7 @@ function! fetch#buffer(specs) abort " {{{
   if !empty(v:swapcommand)
     execute 'normal' v:swapcommand
   endif
-  return s:setpos(l:spec.parse(l:match, l:file))
+  return s:setpos(l:specmatch.spec.parse(l:specmatch.match, l:file))
 endfunction " }}}
 
 " Edit |<cfile>|, resolving a possible trailing spec from {specs}:
@@ -99,18 +99,25 @@ function! fetch#cfile(count, specs) abort " {{{
   
   " test for a trailing spec, accounting for multi-line '<cfile>' matches
   if !empty(l:cfile)
-    let l:cfilepos = s:cpos(l:cfile)
+    let l:cfilepos  = s:cpos(l:cfile)
     let [l:endline, l:endcol] = l:cfilepos.end
-    let [l:go, l:spec, l:match]
-    \ = fetch#specs#matchatpos(a:specs, getline(l:endline), l:endcol)
-    if l:go is 1 " leverage Vim's own |gf| for opening the file
+    let l:specmatch = fetch#specs#match(getline(l:endline), a:specs, l:endcol)
+    if l:specmatch.pos is l:endcol " leverage Vim's own |gf| for opening the file
       execute 'normal!' a:count.'gf'
-      return s:setpos(l:spec.parse(l:match))
+      return s:setpos(l:specmatch.spec.parse(l:specmatch.match))
     endif
   endif
 
-  " fall back to Vim's |gF|
-  execute 'normal!' a:count.'gF'
+  try          " fall back to Vim's |gF|
+    execute 'normal!' a:count.'gF'
+  catch /E447/ " test if 'isfname' characters overlay the spec
+    let l:specs = fetch#specs#bykey(a:specs, 'separator')
+    call filter(l:specs, 'match(v:key, "\\f") isnot -1')
+    execute 'let l:specs = '.join(values(l:specs), '+')
+    if empty(l:specs) || s:cfileseek(l:cfile, l:specs) isnot 1
+      echoerr v:exception
+    endif
+  endtry
   return 1
 endfunction " }}}
 
@@ -125,9 +132,8 @@ function! fetch#visual(count, specs) abort " {{{
   " test for a trailing spec, accounting for multi-line and block selections
   if !empty(fetch#selection#content(l:selection))
     let [l:endline, l:endcol] = l:selection.end[1:2]
-    let [l:go, l:spec, l:match]
-    \ = fetch#specs#matchatpos(a:specs, getline(l:endline), l:endcol)
-    if l:go is 1 " leverage Vim's |gf| to get the file
+    let l:specmatch = fetch#specs#match(getline(l:endline), a:specs, l:endcol)
+    if l:specmatch.pos is l:endcol " leverage Vim's |gf| to get the file
       call s:dovisual(a:count.'gf')
       return s:setpos(l:spec.parse(l:match))
     endif
