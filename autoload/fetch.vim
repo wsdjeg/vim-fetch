@@ -96,15 +96,13 @@ endfunction " }}}
 "              - will fall back on Vim's |gF| when no spec matches
 function! fetch#cfile(count, specs) abort " {{{
   let l:cfile = expand('<cfile>')
-
+  
   " test for a trailing spec, accounting for multi-line '<cfile>' matches
   if !empty(l:cfile)
-    " locate '<cfile>' in current line
     let l:cfilepos = s:cpos(l:cfile)
-
-    " test for a trailing spec, accounting for multi-line '<cfile>' matches
-    let [l:line, l:colindex]    = [getline(l:cfilepos.end[0]), l:cfilepos.end[1]]
-    let [l:go, l:spec, l:match] = fetch#specs#matchatpos(a:specs, l:line, l:colindex)
+    let [l:endline, l:endcol] = l:cfilepos.end
+    let [l:go, l:spec, l:match]
+    \ = fetch#specs#matchatpos(a:specs, getline(l:endline), l:endcol)
     if l:go is 1 " leverage Vim's own |gf| for opening the file
       execute 'normal!' a:count.'gf'
       return s:setpos(l:spec.parse(l:match))
@@ -123,16 +121,16 @@ endfunction " }}}
 "              - will fall back on Vim's |gF| when no spec matches
 function! fetch#visual(count, specs) abort " {{{
   let l:selection = fetch#selection#save()
-  let [l:endline, l:endcol] = l:selection.end[1:2]
 
-  " test for a trailing spec
+  " test for a trailing spec, accounting for multi-line and block selections
   if !empty(fetch#selection#content(l:selection))
+    let [l:endline, l:endcol] = l:selection.end[1:2]
     let [l:go, l:spec, l:match]
     \ = fetch#specs#matchatpos(a:specs, getline(l:endline), l:endcol)
     if l:go is 1 " leverage Vim's |gf| to get the file
-        call s:dovisual(a:count.'gf')
-        return s:setpos(l:spec.parse(l:match))
-      endif
+      call s:dovisual(a:count.'gf')
+      return s:setpos(l:spec.parse(l:match))
+    endif
   endif
 
   " fall back to Vim's |gF|
