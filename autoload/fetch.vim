@@ -100,18 +100,11 @@ function! fetch#cfile(count, specs) abort " {{{
   " test for a trailing spec, accounting for multi-line '<cfile>' matches
   if !empty(l:cfile)
     " locate '<cfile>' in current line
-    let l:pattern = '\M'.escape(l:cfile, '\')
-    let l:cfstart = searchpos(l:pattern, 'bcn', line('.'))
-    if l:cfstart == [0, 0]
-      let l:cfstart = searchpos(l:pattern, 'cn', line('.'))
-    endif
+    let l:cfilepos = s:cpos(l:cfile)
 
     " test for a trailing spec, accounting for multi-line '<cfile>' matches
-    let l:cflines   = split(l:cfile, "\n")
-    let l:matchline = getline(l:cfstart[0] + len(l:cflines) - 1)
-    let l:matchpos  = (len(l:cflines) > 1 ? 0 : l:cfstart[1]) + len(l:cflines[-1]) - 1
-    let [l:go, l:spec, l:match]
-    \ = fetch#specs#matchatpos(a:specs, l:matchline, l:matchpos)
+    let [l:line, l:colindex]    = [getline(l:cfilepos.end[0]), l:cfilepos.end[1]]
+    let [l:go, l:spec, l:match] = fetch#specs#matchatpos(a:specs, l:line, l:colindex)
     if l:go is 1 " leverage Vim's own |gf| for opening the file
       execute 'normal!' a:count.'gf'
       return s:setpos(l:spec.parse(l:match))
