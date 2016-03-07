@@ -35,6 +35,15 @@ function! s:bufignore.freaks[-1].detect(buffer) abort
     return !empty(getbufvar(a:buffer, 'netrw_lastfile'))
 endfunction " }}}
 
+" Get a copy of vim-fetch's spec matchers:
+" @signature:  fetch#specs()
+" @returns:    Dictionary<SpecDictionary> keyed by name
+" @notes:      for API compatibility with version 2.0
+" @deprecated
+function! fetch#specs() abort
+  return fetch#specs#bykey('name')
+endfunction
+
 " Resolve {specs} for the current buffer, substituting the resolved
 " file (if any) for it, with the cursor placed at the resolved position:
 " @signature:  fetch#buffer({specs:List<SpecDictionary>})
