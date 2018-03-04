@@ -33,7 +33,7 @@ function! s:specs.plan9.parse(file) abort
   return [l:file, ['cursor', [l:pos, 0]]]
 endfunction
 
-" - Pytest type method spec, i.e. ::method
+" - Pytest type method spec, i.e. '::method'
 let s:specs.pytest = {'pattern': '\m::\(\w\+\)'}
 function! s:specs.pytest.parse(file) abort
   let l:file   = substitute(a:file, self.pattern, '', '')
