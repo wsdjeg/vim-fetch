@@ -123,7 +123,7 @@ it does not guarantee the final position of the cursor.
 
 I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER (ARG) LIST
 
-vim-fetch uses the |BufWinEnter| event to trigger the loading; if your buffers
+vim-fetch uses the |BufNewFile| event to trigger the loading; if your buffers
 have never actually entered a window yet, they are still listed in their
 spec'ed form. Correct loading will happen when you select them for editing.
 

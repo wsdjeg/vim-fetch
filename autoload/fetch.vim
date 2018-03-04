@@ -10,7 +10,6 @@ set cpoptions&vim
 let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
-"   trigger with '?*:[0123456789]*' pattern
 let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?'}
 function! s:specs.colon.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
@@ -19,7 +18,6 @@ function! s:specs.colon.parse(file) abort
 endfunction
 
 " - trailing parentheses, i.e. '(lnum[:colnum])'
-"   trigger with '?*([0123456789]*)' pattern
 let s:specs.paren = {'pattern': '\m(\(\d\+\%(:\d\+\)\?\))'}
 function! s:specs.paren.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
@@ -28,7 +26,6 @@ function! s:specs.paren.parse(file) abort
 endfunction
 
 " - Plan 9 type line spec, i.e. '[:]#lnum'
-"   trigger with '?*#[0123456789]*' pattern
 let s:specs.plan9 = {'pattern': '\m:#\(\d\+\)'}
 function! s:specs.plan9.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
@@ -37,7 +34,6 @@ function! s:specs.plan9.parse(file) abort
 endfunction
 
 " - Pytest type method spec, i.e. ::method
-"   trigger with '?*::?*' pattern
 let s:specs.pytest = {'pattern': '\m::\(\w\+\)'}
 function! s:specs.pytest.parse(file) abort
   let l:file   = substitute(a:file, self.pattern, '', '')
@@ -84,63 +80,79 @@ endfunction " }}}
 "                and returning a List of
 "                0 unspec'ed path String
 "                1 position setting |call()| arguments List
-" @notes:      the autocommand match patterns are not included
 function! fetch#specs() abort " {{{
   return deepcopy(s:specs)
 endfunction " }}}
 
-" Resolve {spec} for the current buffer, substituting the resolved
-" file (if any) for it, with the cursor placed at the resolved position:
+" Resolve the buffer {bufname}, substituting the resolved file (if any) for
+" it, with the cursor placed at the resolved position:
 " @signature:  fetch#buffer({spec:String})
 " @returns:    Boolean
-function! fetch#buffer(spec) abort " {{{
-  let l:bufname = expand('%')
-  let l:spec    = s:specs[a:spec]
+" @note:       only buffers visible in the current tab page are resolved
+function! fetch#buffer(bufname) abort " ({{{
+  " no need for switching if the buffer is not on display
+  let l:bufwinnr = bufwinnr(a:bufname)
+  if l:bufwinnr is -1 | return 0 | endif
 
-  " exclude obvious non-matches
-  if matchend(l:bufname, l:spec.pattern) isnot len(l:bufname)
-    return 0
-  endif
+  " check for a matching spec, return if none matches
+  for l:spec in values(s:specs)
+    if matchend(a:bufname, l:spec.pattern) is len(a:bufname)
+      break
+    endif
+    unlet! l:spec
+  endfor
+  if exists('l:spec') isnot 1 | return 0 | endif
 
   " only substitute if we have a valid resolved file
-  " and a spurious unresolved buffer both
-  let [l:file, l:jump] = l:spec.parse(l:bufname)
-  if !filereadable(l:file) || s:bufignore.detect(bufnr('%')) is 1
+  " and a bona fide spurious unresolved buffer both
+  let [l:file, l:jump] = l:spec.parse(a:bufname)
+  if !filereadable(l:file) || s:bufignore.detect(bufnr(a:bufname)) is 1
     return 0
   endif
 
-  " we have a spurious unresolved buffer: set up for wiping
-  set buftype=nowrite       " avoid issues voiding the buffer
-  set bufhidden=wipe        " avoid issues with |bwipeout|
+  " activate the correct window (if needed)
+  let l:oldwinnr = s:gotowin(l:bufwinnr)
 
-  " substitute resolved file for unresolved buffer on arglist
-  if has('listcmds')
-    let l:argidx = index(argv(), l:bufname)
-    if  l:argidx isnot -1
-      execute 'argdelete' fnameescape(l:bufname)
-      execute l:argidx.'argadd' fnameescape(l:file)
-    endif
-  endif
-
-  " set arglist index to resolved file if required
-  " (needs to happen independently of arglist switching to work
-  " with the double processing of the first -o/-O/-p window)
-  if index(argv(), l:file) isnot -1
-    let l:cmd = 'argedit'
-  endif
-
-  " edit resolved file and place cursor at position spec
-  let l:shortmess = &shortmess
-  set shortmess+=oO " avoid "Press ENTER" prompt on switch
   try
-    execute 'keepalt' get(l:, 'cmd', 'edit').v:cmdarg fnameescape(l:file)
+    " we have a spurious unresolved buffer: set up for wiping
+    set buftype=nowrite       " avoid issues voiding the buffer
+    set bufhidden=wipe        " avoid issues with |bwipeout|
+
+    " substitute resolved file for unresolved buffer on arglist
+    let l:argidx = index(argv(), a:bufname)
+    if l:argidx isnot -1
+      if has('listcmds')
+        " execute l:argidx.'argadd' fnameescape(l:file)
+        execute 'argdelete' fnameescape(a:bufname)
+      endif
+      " set arglist index to resolved file if required
+      let l:cmd = l:argidx.'argedit'
+    endif
+
+    " edit resolved file and place cursor at position spec; we need to
+    " suppress regular error handling or files after the offending one will
+    " not be processed in VimEnter
+    let l:shortmess = &shortmess
+    set shortmess+=oO " avoid "Press ENTER" prompt on switch
+    try
+      execute 'keepalt' get(l:, 'cmd', 'edit').v:cmdarg fnameescape(l:file)
+    catch
+      echohl ErrorMsg | echomsg v:errmsg | echohl None
+      if bufname('%') isnot l:file " do not return on unrelated errors
+        return 0
+      endif
+    finally
+      let &shortmess = l:shortmess
+    endtry
+
+    if !empty(v:swapcommand)
+      execute 'normal' v:swapcommand
+    endif
+    return s:setpos(l:jump)
+
   finally
-    let &shortmess = l:shortmess
+    call s:gotowin(l:oldwinnr)
   endtry
-  if !empty(v:swapcommand)
-    execute 'normal' v:swapcommand
-  endif
-  return s:setpos(l:jump)
 endfunction " }}}
 
 " Edit |<cfile>|, resolving a possible trailing spec:
@@ -218,6 +230,16 @@ function! fetch#visual(count) abort " {{{
 endfunction " }}}
 
 " Private helper functions: {{{
+" - go to window {winnr} without affecting editor state
+"   returns the original window number
+function! s:gotowin(winnr) abort
+  let l:curwinnr = bufwinnr('%')
+  if a:winnr isnot -1 && l:curwinnr isnot a:winnr
+    execute 'silent keepjumps noautocmd '.a:winnr.'wincmd w'
+  endif
+  return l:curwinnr
+endfunction
+
 " - place the current buffer's cursor, triggering the "BufFetchPosX" events
 "   see :h call() for the format of the {calldata} List
 function! s:setpos(calldata) abort
