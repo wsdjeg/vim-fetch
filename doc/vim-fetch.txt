@@ -153,9 +153,9 @@ I TRIED TO EDIT A FILE WITH A PLAN 9 STYLE SPEC AND GOT ANOTHER FILE (OR E194)
 
 I CAN'T JUMP TO LINES IN REMOTE FILES VIA NETRW
 
-This is by design: vim-fetch needs to check for readable files in both spec'ed
-and unspec'ed form. Doing that remotely, even when possible, would add too
-much latency to file opening.
+This is by design: vim-fetch needs to check if a readable file exists the
+position spec can be applied to. Doing that remotely, even when possible,
+would add too much latency to file opening.
 
 
 :DROP'ING A SPEC TO AN OPEN FILE DOES NOT ACTIVATE ITS WINDOW
