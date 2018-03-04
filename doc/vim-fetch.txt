@@ -122,11 +122,18 @@ it does not guarantee the final position of the cursor.
 4. Troubleshooting			*vim-fetch-troubleshooting*
 
 
-I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER (ARG) LIST
+I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER LIST
 
 vim-fetch uses the |BufNewFile| event to trigger the loading; if your buffers
 have never actually entered a window yet, they are still listed in their
 spec'ed form. Correct loading will happen when you select them for editing.
+
+
+I HAVE A FILE WITH THE POSITION SPEC ON MY ARG LIST BESIDES THE CORRECT ONE
+
+Your Vim version is compiled without the |+listcmds| feature. Without this
+feature, there is no |:argdelete| command, which is required for vim-fetch to
+delete the spurious entry from the argument list.
 
 
 I CAN'T JUMP TO LINE 8
