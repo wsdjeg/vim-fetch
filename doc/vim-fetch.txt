@@ -10,6 +10,7 @@ Jump to lines and columns specified in buffer names	*vim-fetch*
 2. Position specifications		|vim-fetch-specs|
 3. Usage				|vim-fetch-usage|
 4. Troubleshooting			|vim-fetch-troubleshooting|
+   Bugs					|vim-fetch-bugs|
 5. Credits and license			|vim-fetch-credits-license|
 
 {not available when |'compatible'| is set}
@@ -162,14 +163,14 @@ detect the buffer was originally created by a |:drop| command, so the switch
 happens in place, instead of in the window where the buffer is already open.
 
 
-MY PROBLEM ISN'T LISTED HERE
+MY PROBLEM ISN'T LISTED HERE		*vim-fetch-bugs*
 
-You might have found a bug. Please open an issue at
+You might have found a bug. Please check if there is an open an issue at
 
 	https://github.com/kopischke/vim-fetch/issues
 
-Please do not forget to list the steps to reproduce the issue as well as your
-Vim version and platform.
+and open one if there is not. Please do not forget to list the steps to
+reproduce the issue as well as your Vim version and platform.
 
 ==============================================================================
 5. Credits and License			*vim-fetch-credits-license*
