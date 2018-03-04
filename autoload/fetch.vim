@@ -159,79 +159,83 @@ endfunction " }}}
 " @vimlint(EVL103, 0, a:bufname)
 " @vimlint(EVL104, 0, l:spec)
 
-" Edit |<cfile>|, resolving a possible trailing spec:
-" @signature:  fetch#cfile({count:Number})
-" @returns:    Boolean
-" @notes:      - will test all available specs for a match
-"              - will fall back on Vim's |gF| when no spec matches
-function! fetch#cfile(count) abort " {{{
-  let l:cfile = expand('<cfile>')
+if has('file_in_path') " {{{
+  " Edit |<cfile>|, resolving a possible trailing spec:
+  " @signature:  fetch#cfile({count:Number})
+  " @returns:    Boolean
+  " @notes:      - will test all available specs for a match
+  "              - will fall back on Vim's |gF| when no spec matches
+  function! fetch#cfile(count) abort " {{{
+    let l:cfile = expand('<cfile>')
 
-  if !empty(l:cfile)
-    " locate '<cfile>' in current line
-    let l:pattern  = '\M'.escape(l:cfile, '\')
-    let l:position = searchpos(l:pattern, 'bcn', line('.'))
-    if l:position == [0, 0]
-      let l:position = searchpos(l:pattern, 'cn', line('.'))
+    if !empty(l:cfile)
+      " locate '<cfile>' in current line
+      let l:pattern  = '\M'.escape(l:cfile, '\')
+      let l:position = searchpos(l:pattern, 'bcn', line('.'))
+      if l:position == [0, 0]
+        let l:position = searchpos(l:pattern, 'cn', line('.'))
+      endif
+
+      " test for a trailing spec, accounting for multi-line '<cfile>' matches
+      let l:lines  = split(l:cfile, "\n")
+      let l:line   = getline(l:position[0] + len(l:lines) - 1)
+      let l:offset = (len(l:lines) > 1 ? 0 : l:position[1]) + len(l:lines[-1]) - 1
+      for l:spec in values(s:specs)
+        if match(l:line, l:spec.pattern, l:offset) is l:offset
+          let l:match = matchstr(l:line, l:spec.pattern, l:offset)
+          " leverage Vim's own |gf| for opening the file
+          execute 'normal!' a:count.'gf'
+          return s:setpos(l:spec.parse(l:cfile.l:match)[1])
+        endif
+      endfor
     endif
 
-    " test for a trailing spec, accounting for multi-line '<cfile>' matches
-    let l:lines  = split(l:cfile, "\n")
-    let l:line   = getline(l:position[0] + len(l:lines) - 1)
-    let l:offset = (len(l:lines) > 1 ? 0 : l:position[1]) + len(l:lines[-1]) - 1
-    for l:spec in values(s:specs)
-      if match(l:line, l:spec.pattern, l:offset) is l:offset
-        let l:match = matchstr(l:line, l:spec.pattern, l:offset)
-        " leverage Vim's own |gf| for opening the file
-        execute 'normal!' a:count.'gf'
-        return s:setpos(l:spec.parse(l:cfile.l:match)[1])
+    " fall back to Vim's |gF|
+    execute 'normal!' a:count.'gF'
+    return 1
+  endfunction " }}}
+
+  if has('visual') " {{{
+    " Edit the visually selected file, resolving a possible trailing spec:
+    " @signature:  fetch#visual({count:Number})
+    " @returns:    Boolean
+    " @notes:      - will test all available specs for a match
+    "              - will fall back on Vim's |gF| when no spec matches
+    function! fetch#visual(count) abort " {{{
+      " get text between last visual selection marks
+      " adapted from http://stackoverflow.com/a/6271254/990363
+      let [l:startline, l:startcol] = getpos("'<")[1:2]
+      let [l:endline,   l:endcol]   = getpos("'>")[1:2]
+      let l:endcol  = min([l:endcol, col([l:endline, '$'])]) " 'V' col nr. bug
+      let l:endcol -= &selection is 'inclusive' ? 0 : 1
+      let l:lines   = getline(l:startline, l:endline)
+      if visualmode() isnot? 'v' " block-wise selection
+        let l:endexpr = 'matchstr(v:val, "\\m^.*\\%'.string(l:endcol).'c.\\?")'
+        call map(l:lines, 'strpart('.l:endexpr.', '.string(l:startcol-1).')')
+      else
+        let l:lines[-1] = matchstr(lines[-1], '\m^.*\%'.string(l:endcol).'c.\?')
+        let l:lines[0]  = strpart(l:lines[0], l:startcol-1)
       endif
-    endfor
-  endif
+      let l:selection = join(l:lines, "\n")
 
-  " fall back to Vim's |gF|
-  execute 'normal!' a:count.'gF'
-  return 1
-endfunction " }}}
-
-" Edit the visually selected file, resolving a possible trailing spec:
-" @signature:  fetch#visual({count:Number})
-" @returns:    Boolean
-" @notes:      - will test all available specs for a match
-"              - will fall back on Vim's |gF| when no spec matches
-function! fetch#visual(count) abort " {{{
-  " get text between last visual selection marks
-  " adapted from http://stackoverflow.com/a/6271254/990363
-  let [l:startline, l:startcol] = getpos("'<")[1:2]
-  let [l:endline,   l:endcol]   = getpos("'>")[1:2]
-  let l:endcol  = min([l:endcol, col([l:endline, '$'])]) " 'V' col nr. bug
-  let l:endcol -= &selection is 'inclusive' ? 0 : 1
-  let l:lines   = getline(l:startline, l:endline)
-  if visualmode() isnot? 'v' " block-wise selection
-    let l:endexpr = 'matchstr(v:val, "\\m^.*\\%'.string(l:endcol).'c.\\?")'
-    call map(l:lines, 'strpart('.l:endexpr.', '.string(l:startcol-1).')')
-  else
-    let l:lines[-1] = matchstr(lines[-1], '\m^.*\%'.string(l:endcol).'c.\?')
-    let l:lines[0]  = strpart(l:lines[0], l:startcol-1)
-  endif
-  let l:selection = join(l:lines, "\n")
-
-  " test for a trailing spec
-  if !empty(l:selection)
-    let l:line = getline(l:endline)
-    for l:spec in values(s:specs)
-      if match(l:line, l:spec.pattern, l:endcol) is l:endcol
-        let l:match = matchstr(l:line, l:spec.pattern, l:endcol)
-        call s:dovisual(a:count.'gf') " leverage Vim's |gf| to get the file
-        return s:setpos(l:spec.parse(l:selection.l:match)[1])
+      " test for a trailing spec
+      if !empty(l:selection)
+        let l:line = getline(l:endline)
+        for l:spec in values(s:specs)
+          if match(l:line, l:spec.pattern, l:endcol) is l:endcol
+            let l:match = matchstr(l:line, l:spec.pattern, l:endcol)
+            call s:dovisual(a:count.'gf') " leverage Vim's |gf| to get the file
+            return s:setpos(l:spec.parse(l:selection.l:match)[1])
+          endif
+        endfor
       endif
-    endfor
-  endif
 
-  " fall back to Vim's |gF|
-  call s:dovisual(a:count.'gF')
-  return 1
-endfunction " }}}
+      " fall back to Vim's |gF|
+      call s:dovisual(a:count.'gF')
+      return 1
+    endfunction " }}}
+  endif " }}}
+endif " }}}
 
 " Private helper functions: {{{
 " - go to window {winnr} without affecting editor state
@@ -265,11 +269,13 @@ function! s:doautocmd(pattern) abort
   endif
 endfunction
 
-" - send command to the last visual selection
-function! s:dovisual(command) abort
-  let l:cmd = index(['v', 'V', ''], mode()) is -1 ? 'gv'.a:command : a:command
-  execute 'normal!' l:cmd
-endfunction
+if has('visual')
+  " - send command to the last visual selection
+  function! s:dovisual(command) abort
+    let l:cmd = index(['v', 'V', ''], mode()) is -1 ? 'gv'.a:command : a:command
+    execute 'normal!' l:cmd
+  endfunction
+endif
 " }}}
 
 let &cpoptions = s:cpoptions

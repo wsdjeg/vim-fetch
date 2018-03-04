@@ -41,8 +41,12 @@ augroup fetch
 augroup END
 
 " Set up mappings:
-nnoremap gF :<C-u>call fetch#cfile(v:count1)<CR>
-xnoremap gF :<C-u>call fetch#visual(v:count1)<CR>
+if has('file_in_path')
+  nnoremap gF :<C-u>call fetch#cfile(v:count1)<CR>
+  if has('visual')
+    xnoremap gF :<C-u>call fetch#visual(v:count1)<CR>
+  endif
+endif
 
 let &cpoptions = s:cpoptions
 unlet! s:cpoptions
