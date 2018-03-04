@@ -175,11 +175,14 @@ reproduce the issue as well as your Vim version and platform.
 ==============================================================================
 5. Credits and License			*vim-fetch-credits-license*
 
-vim-fetch is maintained by Martin Kopischke
+vim-fetch was created by Martin Kopischke
 
 	http://martin.kopischke.net
 
-and licensed under the terms of the MIT license according to the accompanying
+but development is essentially dormant. If you are interested in taking over
+maintainership for the plug-in, open an issue for that on GitHub (see |vim-fetch-bugs|).
+
+It is licensed under the terms of the MIT license according to the accompanying
 license file (LICENSE.md). It is inspired by, but not based on, the `file_line`
 plug-in by Victor Bogado (https://github.com/bogado/file-line).
 
