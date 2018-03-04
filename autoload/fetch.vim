@@ -89,6 +89,7 @@ endfunction " }}}
 " @signature:  fetch#buffer({spec:String})
 " @returns:    Boolean
 " @note:       only buffers visible in the current tab page are resolved
+" @vimlint(EVL103, 1, a:bufname)
 function! fetch#buffer(bufname) abort " ({{{
   " no need for switching if the buffer is not on display
   let l:bufwinnr = bufwinnr(a:bufname)
@@ -101,6 +102,7 @@ function! fetch#buffer(bufname) abort " ({{{
     endif
     unlet! l:spec
   endfor
+  " @vimlint(EVL104, 1, l:spec)
   if exists('l:spec') isnot 1 | return 0 | endif
 
   " only substitute if we have a valid resolved file
@@ -154,6 +156,8 @@ function! fetch#buffer(bufname) abort " ({{{
     call s:gotowin(l:oldwinnr)
   endtry
 endfunction " }}}
+" @vimlint(EVL103, 0, a:bufname)
+" @vimlint(EVL104, 0, l:spec)
 
 " Edit |<cfile>|, resolving a possible trailing spec:
 " @signature:  fetch#cfile({count:Number})
