@@ -1,4 +1,4 @@
-*vim-fetch.txt*        For Vim version 7.0 or better          version 2.0.2
+*vim-fetch.txt*        For Vim version 7.0 or better          version 3.0.0
 
 
 		VIM REFERENCE for the Fetch plug-in
@@ -10,6 +10,7 @@ Jump to lines and columns specified in buffer names	*vim-fetch*
 2. Position specifications		|vim-fetch-specs|
 3. Usage				|vim-fetch-usage|
 4. Troubleshooting			|vim-fetch-troubleshooting|
+   Bugs					|vim-fetch-bugs|
 5. Credits and license			|vim-fetch-credits-license|
 
 {not available when |'compatible'| is set}
@@ -121,11 +122,32 @@ it does not guarantee the final position of the cursor.
 4. Troubleshooting			*vim-fetch-troubleshooting*
 
 
-I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER (ARG) LIST
+I STILL GET EMPTY FILES WITH LINE NUMBERS WITH FETCH INSTALLED
 
-vim-fetch uses the |BufWinEnter| event to trigger the loading; if your buffers
+1. You may be trying to resolve a position specification not supported by
+vim-fetch. See |vim-fetch-specs|.
+
+2. Your Vim is compiled without the |+autocmd| feature. vim-fetch needs the
+|autocommand| functionality to do its magic. If your Vim copy does not support
+autocommands, you can still use the `:Fetch` command vim-fetch defines in that
+case (and only in that case) while editing the spurious empty buffer Vim opens
+when you try to edit a file with a position specification.
+
+3. You have found a bug. See |vim-fetch-bugs|.
+
+
+I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER LIST
+
+vim-fetch uses the |BufNewFile| event to trigger the loading; if your buffers
 have never actually entered a window yet, they are still listed in their
 spec'ed form. Correct loading will happen when you select them for editing.
+
+
+I HAVE A FILE WITH THE POSITION SPEC ON MY ARG LIST BESIDES THE CORRECT ONE
+
+Your Vim version is compiled without the |+listcmds| feature. Without this
+feature, there is no |:argdelete| command, which is required for vim-fetch to
+delete the spurious entry from the argument list.
 
 
 I CAN'T JUMP TO LINE 8
@@ -145,9 +167,9 @@ I TRIED TO EDIT A FILE WITH A PLAN 9 STYLE SPEC AND GOT ANOTHER FILE (OR E194)
 
 I CAN'T JUMP TO LINES IN REMOTE FILES VIA NETRW
 
-This is by design: vim-fetch needs to check for readable files in both spec'ed
-and unspec'ed form. Doing that remotely, even when possible, would add too
-much latency to file opening.
+This is by design: vim-fetch needs to check if a readable file exists the
+position spec can be applied to. Doing that remotely, even when possible,
+would add too much latency to file opening.
 
 
 :DROP'ING A SPEC TO AN OPEN FILE DOES NOT ACTIVATE ITS WINDOW
@@ -162,23 +184,26 @@ detect the buffer was originally created by a |:drop| command, so the switch
 happens in place, instead of in the window where the buffer is already open.
 
 
-MY PROBLEM ISN'T LISTED HERE
+MY PROBLEM ISN'T LISTED HERE		*vim-fetch-bugs*
 
-You might have found a bug. Please open an issue at
+You might have found a bug. Please check if there is an open an issue at
 
 	https://github.com/kopischke/vim-fetch/issues
 
-Please do not forget to list the steps to reproduce the issue as well as your
-Vim version and platform.
+and open one if there is not. Please do not forget to list the steps to
+reproduce the issue as well as your Vim version and platform.
 
 ==============================================================================
 5. Credits and License			*vim-fetch-credits-license*
 
-vim-fetch is maintained by Martin Kopischke
+vim-fetch was created by Martin Kopischke
 
 	http://martin.kopischke.net
 
-and licensed under the terms of the MIT license according to the accompanying
+but development is essentially dormant. If you are interested in taking over
+maintainership for the plug-in, open an issue for that on GitHub (see |vim-fetch-bugs|).
+
+It is licensed under the terms of the MIT license according to the accompanying
 license file (LICENSE.md). It is inspired by, but not based on, the `file_line`
 plug-in by Victor Bogado (https://github.com/bogado/file-line).
 
