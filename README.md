@@ -3,6 +3,10 @@
 [![Open issues][badge-issues]][issues]
 [![License][badge-license]][license]
 
+**Maintainer needed:** I have not done much software development these last few years, and I use Vim less and less. As a result,  *vim-fetch* development has gone mostly dormant. After releasing version 3, which restores full functionality of the plugin in Vim 8, I would like to transfer maintainership of it to someone with more spare time and energy to take care of it. 
+
+If you are interested, open an [issue][issues] to discuss this.
+
 ## Fetch that line and column, boy!
 
 *vim-fetch* enables Vim to process line and column jump specifications in file paths as found in stack traces and similar output. When asked to open such a file, in- or outside Vim or via `gF`, Vim with *vim-fetch* will jump to the specified line (and column, if given) instead of displaying an empty, new file.
@@ -33,7 +37,7 @@ Quickly jumping to the point indicated by common stack trace output should be a 
 
 *vim-fetch* is licensed under [the terms of the MIT license according to the accompanying license file][license].
 
-[badge-status]:           http://img.shields.io/badge/status-active-brightgreen.svg?style=flat-square
+[badge-status]:           https://img.shields.io/badge/status-maintainer%20needed-yellow.svg?style=flat-square
 [badge-release]:          http://img.shields.io/github/release/kopischke/vim-fetch.svg?style=flat-square
 [badge-issues]:           http://img.shields.io/github/issues/kopischke/vim-fetch.svg?style=flat-square
 [badge-license]:          http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
