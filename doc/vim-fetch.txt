@@ -122,6 +122,20 @@ it does not guarantee the final position of the cursor.
 4. Troubleshooting			*vim-fetch-troubleshooting*
 
 
+I STILL GET EMPTY FILES WITH LINE NUMBERS WITH FETCH INSTALLED
+
+1. You may be trying to resolve a position specification not supported by
+vim-fetch. See |vim-fetch-specs|.
+
+2. Your Vim is compiled without the |+autocmd| feature. vim-fetch needs the
+|autocommand| functionality to do its magic. If your Vim copy does not support
+autocommands, you can still use the `:Fetch` command vim-fetch defines in that
+case (and only in that case) while editing the spurious empty buffer Vim opens
+when you try to edit a file with a position specification.
+
+3. You have found a bug. See |vim-fetch-bugs|.
+
+
 I HAVE FILES WITH THE POSITION SPEC IN MY BUFFER LIST
 
 vim-fetch uses the |BufNewFile| event to trigger the loading; if your buffers
