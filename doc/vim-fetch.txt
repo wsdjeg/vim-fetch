@@ -63,7 +63,7 @@ OTHER SPEC TYPES
 If you would you like to see other specs in vim-fetch, open an issue (or even
 better: send a PR) for them at
 
-	https://github.com/kopischke/vim-fetch
+	https://github.com/wsdjeg/vim-fetch
 
 ==============================================================================
 3. Usage					*vim-fetch-usage*
@@ -188,7 +188,7 @@ MY PROBLEM ISN'T LISTED HERE		*vim-fetch-bugs*
 
 You might have found a bug. Please check if there is an open an issue at
 
-	https://github.com/kopischke/vim-fetch/issues
+	https://github.com/wsdjeg/vim-fetch/issues
 
 and open one if there is not. Please do not forget to list the steps to
 reproduce the issue as well as your Vim version and platform.
@@ -196,12 +196,8 @@ reproduce the issue as well as your Vim version and platform.
 ==============================================================================
 5. Credits and License			*vim-fetch-credits-license*
 
-vim-fetch was created by Martin Kopischke
-
-	http://martin.kopischke.net
-
-but development is essentially dormant. If you are interested in taking over
-maintainership for the plug-in, open an issue for that on GitHub (see |vim-fetch-bugs|).
+vim-fetch was originally created by Martin Kopischke (http://martin.kopischke.net)
+and is now maintained by Wang Shidong.
 
 It is licensed under the terms of the MIT license according to the accompanying
 license file (LICENSE.md). It is inspired by, but not based on, the `file_line`
