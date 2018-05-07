@@ -1,0 +1,5 @@
+{
+  "name": "vim-fetch",
+  "description": "Jump to lines and columns specified in buffer names",
+  "author": "Martin Kopischke"
+}
