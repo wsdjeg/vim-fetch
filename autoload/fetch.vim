@@ -10,7 +10,7 @@ set cpoptions&vim
 let s:specs = {}
 
 " - trailing colon, i.e. ':lnum[:colnum[:]]'
-let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}:\?'}
+let s:specs.colon = {'pattern': '\m\%(:\d\+\)\{1,2}\%(:.*\)\?'}
 function! s:specs.colon.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
   let l:pos  = split(matchstr(a:file, self.pattern), ':')
