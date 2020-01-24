@@ -43,9 +43,15 @@ PARENTHESES ENCLOSED
 6. path/to/file.ext(lnum:colnum)
 
 
+EQUALS/DASH ENCLOSED
+
+7. path/to/file.ext=lnum=
+8. path/to/file.ext-lnum-
+
+
 PLAN 9 STYLE
 
-7. path/to/file.ext:#lnum
+9. path/to/file.ext:#lnum
 
 Note: `#` is the alternate file token and needs to be escaped to be used on
 the command line (see |cmdline-special|).
@@ -53,7 +59,7 @@ the command line (see |cmdline-special|).
 
 PYTEST METHOD JUMPS
 
-8. path/to/file.ext::method
+10. path/to/file.ext::method
 
 Note: this will only find Python method definitions.
 
