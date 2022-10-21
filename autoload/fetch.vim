@@ -58,7 +58,7 @@ function! s:specs.pytest.parse(file) abort
   return [l:file, ['search', [l:method, 'cw']]]
 endfunction " }}}
 
-" - GitHub line spec, i.e. '#Llnum'
+" - GitHub/GitLab line spec, i.e. '#Llnum'
 let s:specs.github_line = {'pattern': '\m#L\(\d\+\)'}
 function! s:specs.github_line.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
@@ -66,8 +66,8 @@ function! s:specs.github_line.parse(file) abort
   return [l:file, ['cursor', [l:pos, 0]]]
 endfunction
 
-" - GitHub line range, i.e. '#Llnum-Llnum'
-let s:specs.github_range = {'pattern': '\m#L\(\d\+\)-L\(\d\+\)'}
+" - GitHub/GitLab line range, i.e. '#Llnum-Llnum'
+let s:specs.github_range = {'pattern': '\m#L\(\d\+\)-L\?\(\d\+\)'}
 function! s:specs.github_range.parse(file) abort
   let l:file = substitute(a:file, self.pattern, '', '')
   let [l:start, l:end]  = matchlist(a:file, self.pattern)[1:2]
