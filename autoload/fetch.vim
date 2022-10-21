@@ -58,6 +58,13 @@ function! s:specs.pytest.parse(file) abort
   return [l:file, ['search', [l:method, 'cw']]]
 endfunction " }}}
 
+" - GitHub line spec, i.e. '#Llnum'
+let s:specs.github_line = {'pattern': '\m#L\(\d\+\)'}
+function! s:specs.github_line.parse(file) abort
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let l:pos  = matchlist(a:file, self.pattern)[1]
+  return [l:file, ['cursor', [l:pos, 0]]]
+endfunction
 " Detection heuristics for buffers that should not be resolved: {{{
 let s:bufignore = {'freaks': []}
 function! s:bufignore.detect(bufnr) abort
