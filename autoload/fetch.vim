@@ -58,6 +58,22 @@ function! s:specs.pytest.parse(file) abort
   return [l:file, ['search', [l:method, 'cw']]]
 endfunction " }}}
 
+" - GitHub/GitLab line spec, i.e. '#Llnum'
+let s:specs.github_line = {'pattern': '\m#L\(\d\+\)'}
+function! s:specs.github_line.parse(file) abort
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let l:pos  = matchlist(a:file, self.pattern)[1]
+  return [l:file, ['cursor', [l:pos, 0]]]
+endfunction
+
+" - GitHub/GitLab line range, i.e. '#Llnum-Llnum'
+let s:specs.github_range = {'pattern': '\m#L\(\d\+\)-L\?\(\d\+\)'}
+function! s:specs.github_range.parse(file) abort
+  let l:file = substitute(a:file, self.pattern, '', '')
+  let [l:start, l:end]  = matchlist(a:file, self.pattern)[1:2]
+  return [l:file, ['execute', ['normal! '.l:end.'GV'.l:start.'Ggv0']]]
+endfunction
+
 " Detection heuristics for buffers that should not be resolved: {{{
 let s:bufignore = {'freaks': []}
 function! s:bufignore.detect(bufnr) abort
@@ -270,7 +286,8 @@ function! s:setpos(calldata) abort
   call s:doautocmd('BufFetchPosPre')
   keepjumps call call('call', a:calldata)
   let b:fetch_lastpos = getpos('.')[1:2]
-  silent! normal! zOzz
+  silent! foldopen!
+  silent! normal! zz
   call s:doautocmd('BufFetchPosPost')
   return 1
 endfunction
