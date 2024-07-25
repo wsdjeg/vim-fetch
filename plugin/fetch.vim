@@ -24,10 +24,10 @@ if has('autocmd')
       "
       " 1. check new files for a spec when Vim has finished its init sequence...
       autocmd BufNewFile *
-      \ execute 'autocmd fetch VimEnter * nested call fetch#buffer("'.escape(expand('<afile>'), ' \\').'")'
+      \ execute 'autocmd fetch VimEnter * nested call fetch#buffer("'.escape(expand('<afile>:p'), ' \\').'")'
       " 2. ... and start checking directly once the init sequence is complete
       autocmd VimEnter *
-      \ execute 'autocmd! fetch BufNewFile * nested call fetch#buffer(expand("<afile>"))'
+      \ execute 'autocmd! fetch BufNewFile * nested call fetch#buffer(expand("<afile>:p"))'
 
       " `fetch#buffer` is tab-local, so let's process buffers on other tab pages;
       " as of Vim 8.1522, I can't think of a way to create two or more windows
