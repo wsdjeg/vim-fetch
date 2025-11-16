@@ -2,11 +2,10 @@
 
 > Fetch that line and column, boy!
 
-[![Build Status](https://travis-ci.org/wsdjeg/vim-fetch.svg?branch=master)](https://travis-ci.org/wsdjeg/vim-fetch)
-[![Project status](https://img.shields.io/badge/status-maintained-green.svg?style=flat-square)](http://www.vim.org/scripts/script.php?script_id=5089)
-[![Current release](http://img.shields.io/github/release/wsdjeg/vim-fetch.svg?style=flat-square)](https://github.com/wsdjeg/vim-fetch/releases)
-[![Open issues](http://img.shields.io/github/issues/wsdjeg/vim-fetch.svg?style=flat-square)](https://github.com/wsdjeg/vim-fetch/issues)
-[![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE.md)
+[![GitHub License](https://img.shields.io/github/license/wsdjeg/vim-fetch)](LICENSE)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/wsdjeg/vim-fetch)](https://github.com/wsdjeg/vim-fetch/issues)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/wsdjeg/vim-fetch)](https://github.com/wsdjeg/vim-fetch/commits/master/)
+[![GitHub Release](https://img.shields.io/github/v/release/wsdjeg/vim-fetch)](https://github.com/wsdjeg/vim-fetch/releases)
 
 <!-- vim-markdown-toc GFM -->
 
