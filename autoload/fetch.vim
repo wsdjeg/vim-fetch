@@ -128,7 +128,11 @@ function! fetch#buffer(bufname) abort " ({{{
   if l:bufwinnr is -1 | return 0 | endif
 
   " check for a matching spec, return if none matches
-  for l:spec in values(s:specs)
+  for [l:key, l:spec] in items(s:specs)
+    if index(g:fetch_disabled_specs, l:key) != -1
+      unlet! l:spec
+      continue
+    endif
     if matchend(a:bufname, l:spec.pattern) is len(a:bufname)
       break
     endif

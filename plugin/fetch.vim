@@ -9,6 +9,14 @@ endif
 let s:cpoptions = &cpoptions
 set cpoptions&vim
 
+if exists('g:fetch_disabled_specs') == 0
+  " there is no way to disable specific specs when handle filename.
+  " add fetch_disabled_specs to disable specific specs
+  " example:
+  " let g:fetch_disabled_specs = ['dash']
+  let g:fetch_disabled_specs = []
+endif
+
 " Set up autocommands:
 if has('autocmd')
   augroup fetch
